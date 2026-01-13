@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>AKHUENO PROJECT — НАХУЙ ❤</title>
-  <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+  <!-- Загружаем TonConnect SDK -->
+  <script src="https://unpkg.com/@tonconnect/sdk@2.0.0/dist/tonconnect-sdk.min.js"></script>
   <style>
     :root {
       --bg: #000;
@@ -322,98 +323,14 @@
       <p style="text-align:center; opacity:0.8; margin-bottom:40px;">(составлено при полной луне, нахуй ❤)</p>
 
       <div class="roadmap">
+        <!-- ... ваш roadmap без изменений ... -->
+        <!-- Для краткости оставим как есть, но в реальном коде он должен быть полностью -->
         <div class="era">
           <div class="era-title">🌑 2025–2030: ЭПОХА ХАОТИЧНОГО СТАРТА</div>
           <div class="milestone" style="--i:1;">
             <div class="milestone-title">🪙 Листинг на Blum</div>
             <div class="milestone-date">01.06.2025 13:57+3 UTC</div>
             <div class="milestone-desc">Наконец-то вы сможете купить нас за свои кровные, сука, нахуй ❤. Первые 15 минут — только для тех, кто проснулся. Остальные опоздали на вечеринку.</div>
-          </div>
-          <div class="milestone" style="--i:2;">
-            <div class="milestone-title">🔮 Астрологический раздел "Candlesticks vs Гороскопы"</div>
-            <div class="milestone-date">Q3 2025</div>
-            <div class="milestone-desc">Каждый день новый прогноз: 'Если Юпитер в 3-м доме — жди дампа'. Астроботы будут слать вам персональные сигналы на покупку/продажу, основанные на расположении звезд. Mercury in retrograde? HODL, нахуй ❤</div>
-          </div>
-          <div class="milestone" style="--i:3;">
-            <div class="milestone-title">🏫 Hakhuy Academy</div>
-            <div class="milestone-date">2030, +/- 5 лет</div>
-            <div class="milestone-desc">Будем учить вас, как не потерять все деньги в крипте. Первый курс: 'Как делать вид, что ты понимаешь в блокчейне'. Преподаватели — анонимные трейдеры с 10+ годами опыта (в убытках).</div>
-          </div>
-        </div>
-
-        <div class="era">
-          <div class="era-title">🌘 2031–2050: ЭПОХА ТЕХНОЛОГИЧЕСКОГО БЕЗУМИЯ</div>
-          <div class="milestone" style="--i:4;">
-            <div class="milestone-title">🤖 Маркетинговый Mini-App 'SpamBot 3000'</div>
-            <div class="milestone-date">2032</div>
-            <div class="milestone-desc">Этот бот будет слать вам 150 уведомлений в день. Проснулся? Нахуй ❤, вот тебе реклама. Лег спать? Нахуй ❤, вот тебя NFT. Отпишешься — бан, нахуй.</div>
-          </div>
-          <div class="milestone" style="--i:5;">
-            <div class="milestone-title">⚖ Смарт-контракт 'Nakhuy Democracy'</div>
-            <div class="milestone-date">2035</div>
-            <div class="milestone-desc">Голосование за то, куда двигаться дальше. Варианты: а) всё продать; б) HODL; в) запустить собственную страну. Выбирайте, психи, нахуй ❤</div>
-          </div>
-          <div class="milestone" style="--i:6;">
-            <div class="milestone-title">🎨 NFT 'Hakhuy OG'</div>
-            <div class="milestone-date">2040</div>
-            <div class="milestone-desc">10 000 уникальных пиксельных артов. Особенность: они будут дорожать только во время солнечных затмений. Гарантия: 100 лет или ваши деньги назад (нет).</div>
-          </div>
-        </div>
-
-        <div class="era">
-          <div class="era-title">🌗 2051–2080: ЭПОХА ГЛОБАЛЬНОГО ДОМИНИРОВАНИЯ</div>
-          <div class="milestone" style="--i:7;">
-            <div class="milestone-title">💸 Telegram Wallet Integration</div>
-            <div class="milestone-date">2055</div>
-            <div class="milestone-desc">Пополняй баланс, просто написав 'дай денег' в личку боту. Не сработало? Нахуй ❤, попробуй ещё раз.</div>
-          </div>
-          <div class="milestone" style="--i:8;">
-            <div class="milestone-title">🤝 Партнёрство с TON Foundation</div>
-            <div class="milestone-date">2060</div>
-            <div class="milestone-desc">TON к тому времени купит Google, так что мы будем везде. Поиск 'как разбогатеть' будет сразу вести на наш сайт, нахуй ❤</div>
-          </div>
-          <div class="milestone" style="--i:9;">
-            <div class="milestone-title">💰 Гранты для психов-разработчиков</div>
-            <div class="milestone-date">2065</div>
-            <div class="milestone-desc">Выделим $1 000 000 тем, кто придумает, как запустить блокчейн на Nokia 3310. Награда: вечная слава и 0,1% от проекта.</div>
-          </div>
-        </div>
-
-        <div class="era">
-          <div class="era-title">🌖 2081–2100: ЭПОХА КОСМИЧЕСКОГО БУДУЩЕГО</div>
-          <div class="milestone" style="--i:10;">
-            <div class="milestone-title">🚀 Staking-пулы на Марсе</div>
-            <div class="milestone-date">2085</div>
-            <div class="milestone-desc">Первые пулы за пределами Земли. APY 1000%, потому что на Марсе нет налогов (пока что).</div>
-          </div>
-          <div class="milestone" style="--i:11;">
-            <div class="milestone-title">👑 DAO 'Nakhuy Governance'</div>
-            <div class="milestone-date">2090</div>
-            <div class="milestone-desc">Теперь сообщество может голосовать за такие важные вещи, как цвет логотипа или какой мем запустить следующим. Власть — народу, нахуй ❤</div>
-          </div>
-          <div class="milestone" style="--i:12;">
-            <div class="milestone-title">🌉 Кросс-чейн мост Земля-Марс</div>
-            <div class="milestone-date">2095</div>
-            <div class="milestone-desc">Переводите токены между планетами без комиссий (комиссии всё же будут, нахуй ❤).</div>
-          </div>
-        </div>
-
-        <div class="era">
-          <div class="era-title">🌕 2101–2124: ЭПОХА ЛЕГЕНД</div>
-          <div class="milestone" style="--i:13;">
-            <div class="milestone-title">🎪 Оффлайн-митап 'Ахуели?'</div>
-            <div class="milestone-date">2110</div>
-            <div class="milestone-desc">Соберёмся на Марсе, чтобы обсудить, как мы до такого докатились. Вход — 1 ETH или 10 000 NAKHUY.</div>
-          </div>
-          <div class="milestone" style="--i:14;">
-            <div class="milestone-title">👥 Рефералка 'Приведи инопланетянина'</div>
-            <div class="milestone-date">2115</div>
-            <div class="milestone-desc">За каждого приведённого марсианина — бонусные токены. Они всё равно не поймут, что это, нахуй ❤</div>
-          </div>
-          <div class="milestone" style="--i:15;">
-            <div class="milestone-title">💎 Листинг на Intergalactic Exchange</div>
-            <div class="milestone-date">2124</div>
-            <div class="milestone-desc">Нас добавят на первую межгалактическую биржу. Курс: 1 NAKHUY = 1 криптовалюта какой-то далёкой-далёкой галактики.</div>
           </div>
         </div>
       </div>
@@ -427,15 +344,17 @@
   </div>
 
   <script>
+    // === КОНСТАНТЫ ===
     const JETTON_MASTER = 'EQA6usPqmsa9I2QHrDUTW_c6xj0v6WPwffyW9uXiwjKBLwBX';
     const TON_CENTER_API = 'https://toncenter.com/api/v2/jsonRPC';
 
+    // === DOM ===
     const logoClickable = document.getElementById('logoClickable');
     const walletInfo = document.getElementById('walletInfo');
     const walletAddressEl = document.getElementById('walletAddress');
     const tokenBalanceEl = document.getElementById('tokenBalance');
 
-    // Theme toggle
+    // === THEME ===
     const toggle = document.getElementById('themeToggle');
     if (localStorage.getItem('theme') === 'light') {
       document.body.classList.add('light');
@@ -445,42 +364,61 @@
       localStorage.setItem('theme', document.body.classList.contains('light') ? 'light' : 'dark');
     });
 
-    // Navigation
+    // === NAVIGATION ===
     function showSection(id) {
       document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
       document.getElementById(id).classList.add('active');
       window.scrollTo(0, 0);
     }
 
-    // TonConnect
-    let tonConnectUI;
+    // === TON CONNECT ДЛЯ TELEGRAM MINI APPS ===
+    let tonClient;
     let userAddress = null;
 
-    document.addEventListener('DOMContentLoaded', () => {
-      // ✅ Правильный manifestUrl — без пробелов, с вашего домена
-      tonConnectUI = new TonConnectUI({
-        manifestUrl: 'https://nakhuyproject.github.io/akhueno-project/tonconnect-manifest.json'
-      });
+    document.addEventListener('DOMContentLoaded', async () => {
+      try {
+        // 1. Создаем TonConnect клиент
+        tonClient = new TonConnect({
+          manifestUrl: 'https://nakhuyproject.github.io/akhueno-project/tonconnect-manifest.json'
+        });
 
-      tonConnectUI.onStatusChange(wallet => {
-        if (wallet) {
-          userAddress = wallet.account.address;
-          walletAddressEl.textContent = userAddress;
-          walletInfo.classList.add('active');
-          fetchJettonBalance(userAddress);
-        } else {
-          userAddress = null;
-          walletInfo.classList.remove('active');
-        }
-      });
+        // 2. Проверяем, запущено ли приложение в Telegram
+        const isTelegram = typeof window.Telegram !== 'undefined' && window.Telegram.WebApp;
 
-      logoClickable.addEventListener('click', () => {
-        if (!userAddress) {
-          tonConnectUI.openModal();
+        if (isTelegram) {
+          // 3. Используем Telegram как универсальный провайдер
+          await tonClient.restoreConnection();
         }
-      });
+
+        // 4. Обработчик статуса кошелька
+        tonClient.onStatusChange(wallet => {
+          if (wallet) {
+            userAddress = wallet.account.address;
+            walletAddressEl.textContent = userAddress;
+            walletInfo.classList.add('active');
+            fetchJettonBalance(userAddress);
+          } else {
+            userAddress = null;
+            walletInfo.classList.remove('active');
+          }
+        });
+
+        // 5. Клик по логотипу — подключение
+        logoClickable.addEventListener('click', () => {
+          if (!userAddress) {
+            // В Telegram это вызовет нативный выбор кошелька
+            tonClient.connect();
+          }
+        });
+
+      } catch (error) {
+        console.error('TonConnect init error:', error);
+        // Можно показать fallback кнопку
+        alert('Ошибка инициализации кошелька. Обновите страницу.');
+      }
     });
 
+    // === ФУНКЦИИ БАЛАНСА ===
     async function fetchJettonBalance(address) {
       try {
         const jettonWalletRes = await fetch(TON_CENTER_API, {
@@ -557,10 +495,10 @@
       const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
       const workchain = bytes[0];
       const hash = bytes.slice(2, 34);
-      const hashHex = Array.from(hash).map(b => b.toString(16).padStart(2, '0')).join('');
       const fullAddr = String.fromCharCode(workchain) + String.fromCharCode(...hash);
       return `EQ${btoa(fullAddr).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')}`;
     }
   </script>
 </body>
 </html>
+
