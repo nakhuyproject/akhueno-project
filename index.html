@@ -138,7 +138,6 @@
       margin: 10px 0 30px;
     }
 
-    /* Wallet info - initially hidden */
     .wallet-info {
       text-align: center;
       margin: 20px 0 30px;
@@ -205,7 +204,6 @@
       to { opacity: 1; }
     }
 
-    /* Roadmap cards */
     .roadmap {
       margin-top: 30px;
     }
@@ -289,13 +287,11 @@
   </style>
 </head>
 <body>
-  <!-- Theme toggle -->
   <div class="theme-toggle" id="themeToggle">
     <div class="toggle-thumb"></div>
   </div>
 
   <div class="container">
-    <!-- Main Page -->
     <div id="home" class="section active">
       <div class="logo-wrapper" id="logoClickable">
         <div class="logo">
@@ -303,7 +299,6 @@
         </div>
       </div>
 
-      <!-- Hidden until connected -->
       <div class="wallet-info" id="walletInfo">
         <div class="wallet-address" id="walletAddress"></div>
         <div class="token-balance" id="tokenBalance">Загрузка...</div>
@@ -322,7 +317,6 @@
       </div>
     </div>
 
-    <!-- Roadmap Page -->
     <div id="roadmap" class="section">
       <h1 style="text-align:center; margin-bottom:30px;">🚀 NAKHUY ROADMAP 2124 EDITION</h1>
       <p style="text-align:center; opacity:0.8; margin-bottom:40px;">(составлено при полной луне, нахуй ❤)</p>
@@ -433,17 +427,15 @@
   </div>
 
   <script>
-    // Constants
     const JETTON_MASTER = 'EQA6usPqmsa9I2QHrDUTW_c6xj0v6WPwffyW9uXiwjKBLwBX';
     const TON_CENTER_API = 'https://toncenter.com/api/v2/jsonRPC';
 
-    // DOM
     const logoClickable = document.getElementById('logoClickable');
     const walletInfo = document.getElementById('walletInfo');
     const walletAddressEl = document.getElementById('walletAddress');
     const tokenBalanceEl = document.getElementById('tokenBalance');
 
-    // Theme
+    // Theme toggle
     const toggle = document.getElementById('themeToggle');
     if (localStorage.getItem('theme') === 'light') {
       document.body.classList.add('light');
@@ -465,20 +457,16 @@
     let userAddress = null;
 
     document.addEventListener('DOMContentLoaded', () => {
+      // ✅ Правильный manifestUrl — без пробелов, с вашего домена
       tonConnectUI = new TonConnectUI({
-        manifestUrl: 'https://ton-connect.github.io/tonconnect-manifest.json'
+        manifestUrl: 'https://nakhuyproject.github.io/akhueno-project/tonconnect-manifest.json'
       });
 
       tonConnectUI.onStatusChange(wallet => {
         if (wallet) {
           userAddress = wallet.account.address;
-          const shortAddr = userAddress.length > 12 
-            ? `${userAddress.substring(0, 4)}...${userAddress.substring(userAddress.length - 4)}`
-            : userAddress;
-          
           walletAddressEl.textContent = userAddress;
           walletInfo.classList.add('active');
-          
           fetchJettonBalance(userAddress);
         } else {
           userAddress = null;
@@ -486,7 +474,6 @@
         }
       });
 
-      // Click on logo to connect
       logoClickable.addEventListener('click', () => {
         if (!userAddress) {
           tonConnectUI.openModal();
@@ -494,10 +481,8 @@
       });
     });
 
-    // Fetch jetton balance
     async function fetchJettonBalance(address) {
       try {
-        // Step 1: Get jetton wallet address
         const jettonWalletRes = await fetch(TON_CENTER_API, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -514,7 +499,7 @@
         });
 
         const jettonWalletData = await jettonWalletRes.json();
-        if (!jettonWalletData.result || !jettonWalletData.result.stack) {
+        if (!jettonWalletData.result?.stack) {
           tokenBalanceEl.textContent = 'Баланс: ошибка';
           return;
         }
@@ -525,11 +510,9 @@
           return;
         }
 
-        // Decode address from cell_slice (base64)
         const addrBase64 = jettonWalletAddrCell.cell;
         const jettonWalletAddr = bufferToAddress(addrBase64);
 
-        // Step 2: Get balance from jetton wallet
         const balanceRes = await fetch(TON_CENTER_API, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -546,7 +529,7 @@
         });
 
         const balanceData = await balanceRes.json();
-        if (!balanceData.result || !balanceData.result.stack) {
+        if (!balanceData.result?.stack) {
           tokenBalanceEl.textContent = 'Баланс: ошибка';
           return;
         }
@@ -555,10 +538,8 @@
         if (balance.type !== 'int') {
           tokenBalanceEl.textContent = 'Баланс: ошибка';
           return;
-          
         }
 
-        // Convert from nanotokens (divide by 10^9)
         const balanceNum = BigInt(balance.value);
         const formattedBalance = (Number(balanceNum) / 1e9).toLocaleString(undefined, {
           minimumFractionDigits: 0,
@@ -572,17 +553,14 @@
       }
     }
 
-    // Helper: decode base64 cell to address
     function bufferToAddress(base64) {
       const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
-      // Skip first 2 bytes (workchain + hash length), take next 32 bytes (hash)
-      const hash = bytes.slice(2, 34);
       const workchain = bytes[0];
+      const hash = bytes.slice(2, 34);
       const hashHex = Array.from(hash).map(b => b.toString(16).padStart(2, '0')).join('');
-      return `EQ${btoa(String.fromCharCode(...[workchain, ...hash]))}`
-        .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+      const fullAddr = String.fromCharCode(workchain) + String.fromCharCode(...hash);
+      return `EQ${btoa(fullAddr).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')}`;
     }
   </script>
 </body>
 </html>
-
