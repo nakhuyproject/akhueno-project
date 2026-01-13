@@ -279,15 +279,35 @@
       border-top: 1px solid rgba(255, 255, 255, 0.08);
     }
 
+    .error-message {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #ff3333;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      z-index: 1000;
+      display: none;
+      text-align: center;
+      max-width: 90%;
+      box-shadow: 0 4px 12px rgba(255, 0, 0, 0.3);
+    }
+
     @media (max-width: 768px) {
       .nav-btn { display: block; margin: 10px auto; width: 80%; }
       h1 { font-size: 2rem; }
       .logo-wrapper { width: 130px; height: 130px; }
       @keyframes floating { 50% { transform: translateY(-15px); } }
+      .error-message { top: 10px; padding: 10px 16px; font-size: 0.9rem; }
     }
   </style>
 </head>
 <body>
+  <!-- Сообщение об ошибке -->
+  <div class="error-message" id="errorMessage"></div>
+
   <div class="theme-toggle" id="themeToggle">
     <div class="toggle-thumb"></div>
   </div>
@@ -296,7 +316,7 @@
     <div id="home" class="section active">
       <div class="logo-wrapper" id="logoClickable">
         <div class="logo">
-          <img src="Logo.png" alt="Akhueno Project Logo">
+          <img src="Logo.png" alt="Akhueno Project Logo" onerror="this.onerror=null; this.src='https://via.placeholder.com/160x160/0041f0/ffffff?text=AKHUENO';">
         </div>
       </div>
 
@@ -323,8 +343,6 @@
       <p style="text-align:center; opacity:0.8; margin-bottom:40px;">(составлено при полной луне, нахуй ❤)</p>
 
       <div class="roadmap">
-        <!-- ... ваш roadmap без изменений ... -->
-        <!-- Для краткости оставим как есть, но в реальном коде он должен быть полностью -->
         <div class="era">
           <div class="era-title">🌑 2025–2030: ЭПОХА ХАОТИЧНОГО СТАРТА</div>
           <div class="milestone" style="--i:1;">
@@ -353,8 +371,22 @@
     const walletInfo = document.getElementById('walletInfo');
     const walletAddressEl = document.getElementById('walletAddress');
     const tokenBalanceEl = document.getElementById('tokenBalance');
+    const errorMessageEl = document.getElementById('errorMessage');
 
-    // === THEME ===
+    // === ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ===
+    let tonClient = null;
+    let userAddress = null;
+
+    // === ПОКАЗАТЬ ОШИБКУ ===
+    function showError(message) {
+      errorMessageEl.textContent = message;
+      errorMessageEl.style.display = 'block';
+      setTimeout(() => {
+        errorMessageEl.style.display = 'none';
+      }, 5000);
+    }
+
+    // === ТЕМА ===
     const toggle = document.getElementById('themeToggle');
     if (localStorage.getItem('theme') === 'light') {
       document.body.classList.add('light');
@@ -364,63 +396,74 @@
       localStorage.setItem('theme', document.body.classList.contains('light') ? 'light' : 'dark');
     });
 
-    // === NAVIGATION ===
+    // === НАВИГАЦИЯ ===
     function showSection(id) {
       document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
       document.getElementById(id).classList.add('active');
       window.scrollTo(0, 0);
     }
 
-    // === TON CONNECT ДЛЯ TELEGRAM MINI APPS ===
-    let tonClient;
-    let userAddress = null;
-
-    document.addEventListener('DOMContentLoaded', async () => {
+    // === ИНИЦИАЛИЗАЦИЯ TONCONNECT ПРИ КЛИКЕ НА ЛОГО ===
+    async function initializeTonConnect() {
       try {
-        // 1. Создаем TonConnect клиент
+        // Если уже инициализирован, просто подключаем
+        if (tonClient) {
+          await tonClient.connect();
+          return;
+        }
+
+        // Создаем TonConnect клиент
         tonClient = new TonConnect({
           manifestUrl: 'https://nakhuyproject.github.io/akhueno-project/tonconnect-manifest.json'
         });
 
-        // 2. Проверяем, запущено ли приложение в Telegram
-        const isTelegram = typeof window.Telegram !== 'undefined' && window.Telegram.WebApp;
-
-        if (isTelegram) {
-          // 3. Используем Telegram как универсальный провайдер
-          await tonClient.restoreConnection();
-        }
-
-        // 4. Обработчик статуса кошелька
-        tonClient.onStatusChange(wallet => {
+        // Обработчик статуса кошелька
+        tonClient.onStatusChange(async (wallet) => {
           if (wallet) {
             userAddress = wallet.account.address;
             walletAddressEl.textContent = userAddress;
             walletInfo.classList.add('active');
-            fetchJettonBalance(userAddress);
+            await fetchJettonBalance(userAddress);
           } else {
             userAddress = null;
             walletInfo.classList.remove('active');
           }
         });
 
-        // 5. Клик по логотипу — подключение
-        logoClickable.addEventListener('click', () => {
-          if (!userAddress) {
-            // В Telegram это вызовет нативный выбор кошелька
-            tonClient.connect();
-          }
-        });
+        // Восстанавливаем соединение, если уже подключено
+        await tonClient.restoreConnection();
+
+        // Если после восстановления нет кошелька, предлагаем подключить
+        if (!tonClient.wallet) {
+          await tonClient.connect();
+        }
 
       } catch (error) {
-        console.error('TonConnect init error:', error);
-        // Можно показать fallback кнопку
-        alert('Ошибка инициализации кошелька. Обновите страницу.');
+        console.error('TonConnect error:', error);
+        showError('Ошибка подключения кошелька. Попробуйте снова.');
       }
+    }
+
+    // === КЛИК ПО ЛОГОТИПУ ===
+    logoClickable.addEventListener('click', async () => {
+      // Проверяем, запущено ли в Telegram Mini App
+      const isTelegram = typeof window.Telegram !== 'undefined' && window.Telegram.WebApp;
+      
+      if (isTelegram) {
+        // В Telegram Mini Apps показываем расширение Web App
+        window.Telegram.WebApp.expand();
+      }
+      
+      // Инициализируем TonConnect
+      await initializeTonConnect();
     });
 
     // === ФУНКЦИИ БАЛАНСА ===
     async function fetchJettonBalance(address) {
       try {
+        tokenBalanceEl.textContent = 'Загрузка баланса...';
+
+        // Получаем адрес jetton-кошелька пользователя
         const jettonWalletRes = await fetch(TON_CENTER_API, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -437,20 +480,22 @@
         });
 
         const jettonWalletData = await jettonWalletRes.json();
-        if (!jettonWalletData.result?.stack) {
-          tokenBalanceEl.textContent = 'Баланс: ошибка';
+        
+        if (!jettonWalletData.result?.stack || jettonWalletData.result.stack.length === 0) {
+          tokenBalanceEl.textContent = 'Баланс: 0 NAKHUY';
           return;
         }
 
         const jettonWalletAddrCell = jettonWalletData.result.stack[0];
         if (jettonWalletAddrCell.type !== 'cell_slice') {
-          tokenBalanceEl.textContent = 'Баланс: ошибка';
+          tokenBalanceEl.textContent = 'Баланс: 0 NAKHUY';
           return;
         }
 
         const addrBase64 = jettonWalletAddrCell.cell;
         const jettonWalletAddr = bufferToAddress(addrBase64);
 
+        // Получаем баланс jetton-кошелька
         const balanceRes = await fetch(TON_CENTER_API, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -467,18 +512,25 @@
         });
 
         const balanceData = await balanceRes.json();
-        if (!balanceData.result?.stack) {
-          tokenBalanceEl.textContent = 'Баланс: ошибка';
+        
+        if (!balanceData.result?.stack || balanceData.result.stack.length === 0) {
+          tokenBalanceEl.textContent = 'Баланс: 0 NAKHUY';
           return;
         }
 
         const balance = balanceData.result.stack[0];
         if (balance.type !== 'int') {
-          tokenBalanceEl.textContent = 'Баланс: ошибка';
+          tokenBalanceEl.textContent = 'Баланс: 0 NAKHUY';
           return;
         }
 
         const balanceNum = BigInt(balance.value);
+        
+        if (balanceNum === 0n) {
+          tokenBalanceEl.textContent = 'Баланс: 0 NAKHUY';
+          return;
+        }
+
         const formattedBalance = (Number(balanceNum) / 1e9).toLocaleString(undefined, {
           minimumFractionDigits: 0,
           maximumFractionDigits: 9
@@ -492,13 +544,31 @@
     }
 
     function bufferToAddress(base64) {
-      const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
-      const workchain = bytes[0];
-      const hash = bytes.slice(2, 34);
-      const fullAddr = String.fromCharCode(workchain) + String.fromCharCode(...hash);
-      return `EQ${btoa(fullAddr).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')}`;
+      try {
+        const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+        if (bytes.length < 34) {
+          throw new Error('Invalid address length');
+        }
+        const workchain = bytes[0];
+        const hash = bytes.slice(2, 34);
+        const fullAddr = String.fromCharCode(workchain) + String.fromCharCode(...hash);
+        return `EQ${btoa(fullAddr).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')}`;
+      } catch (e) {
+        console.error('Address conversion error:', e);
+        return null;
+      }
     }
+
+    // === ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ (без TonConnect) ===
+    document.addEventListener('DOMContentLoaded', () => {
+      // Проверяем, есть ли сохраненная тема
+      if (!localStorage.getItem('theme')) {
+        localStorage.setItem('theme', 'dark');
+      }
+      
+      // Инициализируем только тему, TonConnect будет инициализирован при клике
+      console.log('Приложение загружено. Нажмите на логотип для подключения кошелька.');
+    });
   </script>
 </body>
 </html>
-
