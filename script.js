@@ -84,7 +84,7 @@ function showSection(sectionId) {
     window.scrollTo(0, 0);
 }
 
-// --- ИНИЦИАЛИЗАЦИЯ TonConnect (теперь без restoreConnection и обработки ошибок на старте) ---
+// --- ИНИЦИАЛИЗАЦИЯ TonConnect (без кнопки) ---
 async function initializeTonConnect() {
     // Проверяем, инициализирован ли уже TonConnect UI
     if (tonConnectUI) {
@@ -96,7 +96,7 @@ async function initializeTonConnect() {
         console.log("Инициализация TonConnectUI...");
         tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: 'https://nakhuyproject.github.io/akhueno-project/tonconnect-manifest.json',
-            buttonRootId: 'ton-connect-button'
+            // УБРАТЬ buttonRootId, чтобы не создавать кнопку
         });
 
         // Регистрируем обработчик событий статуса кошелька
@@ -119,27 +119,22 @@ async function initializeTonConnect() {
             }
         });
 
-        // ПОТЕНЦИАЛЬНАЯ ПРОБЛЕМА: restoreConnection может вызвать ошибку при старте
-        // await tonConnectUI.restoreConnection(); // <-- Комментируем эту строку
+        // ПОПЫТКА ВОССТАНОВИТЬ СОЕДИНЕНИЕ ПРИ ЗАГРУЗКЕ
+        await tonConnectUI.restoreConnection();
 
     } catch (error) {
-        // Исключаем ошибки инициализации из показа пользователю при старте
-        console.error('Ошибка инициализации TonConnectUI (не критическая при старте):', error);
-        // showError('Ошибка подключения кошелька. Попробуйте снова.'); // <-- Убираем вызов showError здесь
+        // Обработка ошибок инициализации и восстановления
+        console.error('Ошибка инициализации TonConnectUI:', error);
+        // showError('Ошибка подключения кошелька. Попробуйте снова.'); // Можно показать, если критично
     }
 }
 
-// Функция для ручного восстановления соединения, если нужно, например, при входе на главную
-async function attemptRestoreConnection() {
+// Функция для ручного подключения кошелька
+function connectWallet() {
     if (tonConnectUI) {
-         try {
-            console.log("Попытка восстановить соединение...");
-            await tonConnectUI.restoreConnection();
-         } catch (error) {
-            console.info("Не удалось восстановить соединение (ожидаемо при первом запуске или отсутствии сохранённого сеанса):", error.message);
-         }
+        tonConnectUI.connectWallet();
     } else {
-        console.warn("TonConnectUI не инициализирован для восстановления соединения.");
+        console.warn("TonConnectUI не инициализирован для подключения.");
     }
 }
 
@@ -241,7 +236,7 @@ async function fetchJettonBalance(address) {
     }
 }
 
-// --- Address Conversion Helper --- (оставлен как есть)
+// --- Address Conversion Helper --- (оставлен как есть, но помните о его слабости)
 function bufferToAddress(cellBocBase64) {
     try {
         const binaryString = atob(cellBocBase64);
@@ -291,6 +286,9 @@ backHomeBtn.addEventListener('click', () => showSection('home'));
 
 langSelector.addEventListener('change', (e) => changeLanguage(e.target.value));
 
+// --- НОВОЕ: Обработчик клика на логотип ---
+logoClickable.addEventListener('click', connectWallet);
+
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', async () => {
     // Загрузка темы
@@ -317,7 +315,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const translations = await loadTranslations(currentLang);
     applyTranslations(translations);
 
-    // ИНИЦИАЛИЗАЦИЯ TonConnect БЕЗ автоматического восстановления
+    // ИНИЦИАЛИЗАЦИЯ TonConnect С ВОССТАНОВЛЕНИЕМ
     await initializeTonConnect();
 
     // Telegram Web App
