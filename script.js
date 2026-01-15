@@ -3,7 +3,6 @@ const JETTON_MASTER = 'EQA6usPqmsa9I2QHrDUTW_c6xj0v6WPwffyW9uXiwjKBLwBX';
 const TON_CENTER_API = 'https://toncenter.com/api/v2/jsonRPC';
 
 // --- DOM Elements ---
-// ИЗМЕНЕНО: Теперь logoClickable указывает на элемент с ID 'ton-connect-button'
 const logoClickable = document.getElementById('ton-connect-button');
 const walletInfo = document.getElementById('walletInfo');
 const walletAddressEl = document.getElementById('walletAddress');
@@ -13,7 +12,8 @@ const themeToggle = document.getElementById('themeToggle');
 const roadmapBtn = document.getElementById('roadmapBtn');
 const backHomeBtn = document.getElementById('backHomeBtn');
 const langSelector = document.getElementById('langSelector');
-// Элементы для перевода (добавлены id для удобства обновления)
+
+// Элементы для перевода
 const mainTitle = document.getElementById('mainTitle');
 const taglineText = document.getElementById('taglineText');
 const footerPrediction = document.getElementById('footerPrediction');
@@ -23,7 +23,7 @@ const roadmapSubtitle = document.getElementById('roadmapSubtitle');
 const finalNote = document.getElementById('finalNote');
 
 // --- State Variables ---
-let tonConnectUI = null; // Оставляем как null
+let tonConnectUI = null;
 let userAddress = null;
 let currentLang = 'ru';
 
@@ -65,7 +65,6 @@ async function changeLanguage(newLangCode) {
         const translations = await loadTranslations(newLangCode);
         applyTranslations(translations);
         localStorage.setItem('preferredLanguage', newLangCode);
-        // Обновляем значение селектора языка после загрузки переводов
         langSelector.value = newLangCode;
     }
 }
@@ -86,9 +85,15 @@ function showSection(sectionId) {
 }
 
 async function fetchJettonBalance(address) {
+    if (!address) {
+        console.error("Address is required to fetch balance.");
+        tokenBalanceEl.textContent = 'Баланс: недоступен';
+        return;
+    }
+
     try {
-        tokenBalanceEl.textContent = 'Загрузка...'; // Обновляем статус
-        console.log("Fetching balance for address:", address); // Лог для отладки
+        tokenBalanceEl.textContent = 'Загрузка...';
+        console.log("Fetching balance for address:", address);
 
         const response1 = await fetch(TON_CENTER_API, {
             method: 'POST',
@@ -106,7 +111,7 @@ async function fetchJettonBalance(address) {
         });
 
         const data1 = await response1.json();
-        console.log("Response 1 (get_wallet_address):", data1); // Лог для отладки
+        console.log("Response 1 (get_wallet_address):", data1);
 
         if (!data1.result?.stack || data1.result.stack.length === 0) {
             console.error("No result stack for get_wallet_address");
@@ -121,11 +126,8 @@ async function fetchJettonBalance(address) {
             return;
         }
 
-        // Извлечение адреса jetton-wallet из cell_slice
         const addressCell = cellSlice.cell;
-        // Преобразование Cell BOC в адрес (предполагается, что это base64 строка)
         const walletAddress = bufferToAddress(addressCell);
-        // console.log("Calculated Jetton Wallet Address:", walletAddress); // <-- УДАЛЕНО
 
         if (!walletAddress) {
             console.error("Could not parse jetton wallet address");
@@ -149,7 +151,7 @@ async function fetchJettonBalance(address) {
         });
 
         const data2 = await response2.json();
-        console.log("Response 2 (get_wallet_data):", data2); // Лог для отладки
+        console.log("Response 2 (get_wallet_data):", data2);
 
         if (!data2.result?.stack || data2.result.stack.length < 3) {
              console.error("Insufficient stack length for get_wallet_data");
@@ -157,7 +159,6 @@ async function fetchJettonBalance(address) {
              return;
         }
 
-        // Баланс обычно находится в первом элементе стека (stack[0])
         const balanceStack = data2.result.stack[0];
         if (balanceStack.type !== 'int') {
             console.error("Balance stack item is not an integer");
@@ -166,9 +167,8 @@ async function fetchJettonBalance(address) {
         }
 
         const balanceBigInt = BigInt(balanceStack.value);
-        console.log("Raw Balance BigInt:", balanceBigInt); // Лог для отладки
+        console.log("Raw Balance BigInt:", balanceBigInt);
 
-        // Предполагаем, что токен имеет 9 децималей (как Ton)
         const balanceNumber = Number(balanceBigInt) / 1e9;
         const formattedBalance = balanceNumber.toLocaleString(undefined, {
             minimumFractionDigits: 0,
@@ -182,7 +182,6 @@ async function fetchJettonBalance(address) {
     }
 }
 
-// --- Address Conversion Helper --- (оставлен как есть, но помните о его слабости)
 function bufferToAddress(cellBocBase64) {
     try {
         const binaryString = atob(cellBocBase64);
@@ -220,7 +219,6 @@ function bufferToAddress(cellBocBase64) {
     }
 }
 
-
 // --- Event Listeners ---
 themeToggle.addEventListener('click', () => {
     document.body.classList.toggle('light');
@@ -234,8 +232,7 @@ langSelector.addEventListener('change', (e) => changeLanguage(e.target.value));
 
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', async () => {
-    // ИНИЦИАЛИЗАЦИЯ TonConnect С buttonRootId И ВОССТАНОВЛЕНИЕМ
-    if (!tonConnectUI) { // Проверяем, не инициализирован ли уже
+    if (!tonConnectUI) {
         try {
             console.log("Инициализация TonConnectUI...");
             tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
@@ -243,37 +240,29 @@ document.addEventListener('DOMContentLoaded', async () => {
                 buttonRootId: 'ton-connect-button'
             });
 
-            // Регистрируем обработчик событий статуса кошелька
             tonConnectUI.onStatusChange(async wallet => {
                 if (wallet) {
                     console.log("Кошелек подключен:", wallet);
                     userAddress = wallet.account.address;
-                    // Обновляем элемент адреса
                     walletAddressEl.textContent = userAddress;
                     walletInfo.classList.add('active');
-                    await fetchJettonBalance(userAddress); // Загружаем баланс после подключения
+                    await fetchJettonBalance(userAddress);
                 } else {
                     console.log("Кошелек отключен");
                     userAddress = null;
-                    // Очищаем элемент адреса при отключении
                     walletAddressEl.textContent = '';
                     walletInfo.classList.remove('active');
-                    // Опционально: сбросить баланс
                     tokenBalanceEl.textContent = 'Баланс: 0 NAKHUY';
                 }
             });
 
-            // ПОПЫТКА ВОССТАНОВИТЬ СОЕДИНЕНИЕ ПРИ ЗАГРУЗКЕ
             await tonConnectUI.restoreConnection();
 
         } catch (error) {
-            // Обработка ошибок инициализации и восстановления
             console.error('Ошибка инициализации TonConnectUI:', error);
-            // showError('Ошибка подключения кошелька. Попробуйте снова.'); // Можно показать, если критично
         }
     }
 
-    // Определение языка
     const tgWebApp = window.Telegram?.WebApp;
     let detectedLang = 'ru';
     if (tgWebApp && tgWebApp.initDataUnsafe && tgWebApp.initDataUnsafe.user) {
@@ -286,18 +275,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     const savedLang = localStorage.getItem('preferredLanguage');
     currentLang = savedLang || detectedLang;
-    langSelector.value = currentLang; // Устанавливаем выбранный язык в селекторе
+    langSelector.value = currentLang;
 
-    // Загрузка и применение переводов
     const translations = await loadTranslations(currentLang);
     applyTranslations(translations);
 
-    // Загрузка темы
     if (localStorage.getItem('theme') === 'light') {
         document.body.classList.add('light');
     }
 
-    // Telegram Web App
     if (tgWebApp) {
         tgWebApp.ready();
         tgWebApp.expand();
