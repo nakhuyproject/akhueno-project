@@ -59,7 +59,7 @@
             margin: 0 auto;
             padding: 40px 20px;
         }
-        /* --- Хедер / Управление --- */
+        /* --- Хедер / Управление (только тема и язык) --- */
         .header-controls {
             display: flex;
             justify-content: space-between;
@@ -109,6 +109,7 @@
         .lang-selector:focus {
             box-shadow: 0 0 0 3px rgba(255, 45, 85, 0.5);
         }
+
         /* --- Секции --- */
         .section {
             display: none;
@@ -184,9 +185,27 @@
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-20px); }
         }
-        /* --- Информация о кошельке --- */
-        .wallet-info {
+
+         /* --- Центральный блок управления (новый) --- */
+        .central-controls {
             margin: 25px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        /* --- Кнопка подключения кошелька (обновленный стиль) --- */
+        #ton-connect-button {
+            display: block; /* Теперь блочный элемент для центровки */
+            margin: 0 auto; /* Центрируем */
+            max-width: 300px; /* Ограничиваем ширину */
+        }
+
+        /* --- Информация о кошельке (обновленный стиль) --- */
+        .wallet-info {
+            margin: 20px auto 0; /* Верхний отступ, центрирование */
+            max-width: 300px; /* Соответствует ширине кнопки */
             padding: 15px;
             background: rgba(0, 0, 0, 0.4);
             border-radius: var(--radius);
@@ -208,26 +227,27 @@
             background: rgba(0, 100, 255, 0.1);
             padding: 8px 15px;
             border-radius: 8px;
-            display: inline-block;
+            /* display: inline-block; - Убираем или переопределяем */
+            display: block; /* Теперь всегда на новой строке */
             margin: 8px 0;
             word-break: break-all;
             border: 1px dashed var(--fg-accent-2);
+            text-align: center; /* Центрируем текст адреса */
         }
         .token-balance {
             font-size: 1.4rem;
             font-weight: bold;
             color: var(--fg-accent-3);
-            margin-top: 10px;
+            margin-top: 10px; /* Увеличиваем отступ от .wallet-address */
             text-shadow: 0 0 8px rgba(255, 255, 0, 0.7);
             background: var(--text-gradient);
+            background-clip: text; /* Добавлено */
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            display: block; /* Убедимся, что это блок */
+            text-align: center; /* Центрируем текст баланса */
         }
-        /* --- Кнопка подключения кошелька --- */
-        #ton-connect-button {
-            margin: 20px auto;
-            display: block;
-        }
+
         /* --- Заголовки и текст --- */
         h1 {
             font-size: 2.8rem;
@@ -235,6 +255,7 @@
             text-align: center;
             margin: 15px 0;
             background: var(--text-gradient);
+            background-clip: text; /* Добавлено */
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             text-shadow: 0 0 10px rgba(255, 45, 85, 0.3);
@@ -248,9 +269,9 @@
             margin: 15px 0 30px;
             padding: 0 10px;
         }
-        /* --- Навигационные кнопки --- */
+        /* --- Навигационные кнопки (обновленный стиль для центровки) --- */
         .nav-buttons {
-            text-align: center;
+            text-align: center; /* Центрируем контент внутри */
             margin: 30px 0;
         }
         .nav-btn {
@@ -262,7 +283,7 @@
             font-weight: bold;
             font-size: 1.1rem;
             cursor: pointer;
-            margin: 0 15px;
+            margin: 0 15px; /* Горизонтальный отступ */
             box-shadow: var(--shadow-neon);
             transition: all 0.3s ease;
             position: relative;
@@ -354,6 +375,10 @@
             font-weight: 600;
             color: var(--fg-accent);
             margin-bottom: 10px;
+            background: var(--text-gradient); /* Если используется градиент */
+            background-clip: text; /* Добавлено */
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
         .milestone-date {
             font-size: 0.95rem;
@@ -406,9 +431,53 @@
         @media (max-width: 768px) {
             h1 { font-size: 2.2rem; }
             .logo-wrapper { width: 140px; height: 140px; }
-            .nav-btn { display: block; margin: 12px auto; width: 90%; }
+            .nav-btn { display: block; margin: 12px auto; width: 90%; } /* Кнопки навигации на всю ширину */
             .era-title { padding-left: 30px; font-size: 1.3rem; }
             .milestone { padding: 18px; margin-left: 30px; }
+            /* Адаптация центрального блока управления */
+            .central-controls {
+                gap: 10px;
+            }
+            #ton-connect-button,
+            .wallet-info {
+                max-width: 100%; /* Полная ширина на мобильных */
+                width: 100%;
+            }
+        }
+
+        /* --- Стили для RTL (справа налево) --- */
+        html[dir="rtl"] .header-controls {
+            flex-direction: row-reverse; /* Меняем местами тему и язык */
+        }
+        html[dir="rtl"] .era::before {
+            left: auto; /* Убираем левую границу */
+            right: 20px; /* Добавляем правую границу */
+        }
+        html[dir="rtl"] .era-title {
+            text-align: right; /* Выравнивание текста по правому краю */
+            padding-left: 0; /* Убираем левый отступ */
+            padding-right: 40px; /* Добавляем правый отступ для иконки */
+        }
+        html[dir="rtl"] .era-title::before {
+            left: auto; /* Иконка слева от текста (сейчас справа от блока) */
+            right: 0;
+        }
+        html[dir="rtl"] .milestone {
+            border-left: none; /* Убираем левую границу */
+            border-right: 5px solid var(--fg-accent-2); /* Добавляем правую границу */
+            margin-left: 0; /* Убираем левый отступ */
+            margin-right: 40px; /* Добавляем правый отступ */
+            border-radius: var(--radius) 0 0 var(--radius); /* Меняем скругление */
+        }
+        html[dir="rtl"] .milestone:nth-child(odd) {
+            border-right-color: var(--fg-accent); /* Цвет правой границы */
+        }
+        html[dir="rtl"] .milestone:nth-child(even) {
+            border-right-color: var(--fg-accent-3); /* Цвет правой границы */
+        }
+        /* Коррекция для переключателя темы в RTL */
+        html[dir="rtl"] .light .toggle-thumb {
+            transform: translateX(-26px); /* Меняем направление сдвига */
         }
     </style>
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
@@ -436,12 +505,16 @@
                 <h1 id="mainTitle" data-i18n="title">AKHUENO PROJECT</h1>
                 <p class="tagline" id="taglineText" data-i18n="tagline">Новая веха в социально-экономических отношениях между людьми. Или нет. Но нахуй ❤</p>
 
-                <div id="ton-connect-button"></div> <!-- Контейнер для кнопки TonConnect UI -->
-
-                <div class="wallet-info" id="walletInfo">
-                    <div class="wallet-address" id="walletAddress"></div>
-                    <div class="token-balance" id="tokenBalance" data-i18n="loading_balance">Загрузка...</div>
+                <!-- Центральный блок управления -->
+                <div class="central-controls">
+                    <div id="ton-connect-button"></div> <!-- Контейнер для кнопки TonConnect UI -->
+                    <div class="wallet-info" id="walletInfo">
+                        <div class="wallet-address" id="walletAddress"></div>
+                        <div class="token-balance" id="tokenBalance" data-i18n="loading_balance">Загрузка...</div>
+                    </div>
                 </div>
+                <!-- /Центральный блок управления -->
+
             </div>
 
             <div class="nav-buttons">
@@ -525,7 +598,7 @@
                         <div class="milestone-desc" data-i18n="milestone_dao_desc">Теперь сообщество может голосовать за такие важные вещи, как цвет логотипа или какой мем запустить следующим. Власть — народу, нахуй ❤</div>
                     </div>
                     <div class="milestone" style="--i:12">
-                        <div class="milestone-title" data-i18n="milestone_crosschain_title">🌉 Кросс-чейн мост Земля-Марс</div>
+                        <div class="milestone-title" data-i18n="milestone_crosschain_title">.bridge Кросс-чейн мост Земля-Марс</div>
                         <div class="milestone-date" data-i18n="milestone_crosschain_date">2095</div>
                         <div class="milestone-desc" data-i18n="milestone_crosschain_desc">Переводите токены между планетами без комиссий (комиссии всё же будут, нахуй ❤).</div>
                     </div>
@@ -584,7 +657,7 @@
         const finalNote = document.getElementById('finalNote');
 
         // --- State Variables ---
-        let tonConnectUI = null;
+        let tonConnectUI = null; // Оставляем как null
         let userAddress = null;
         let currentLang = 'ru';
 
@@ -626,6 +699,8 @@
                 const translations = await loadTranslations(newLangCode);
                 applyTranslations(translations);
                 localStorage.setItem('preferredLanguage', newLangCode);
+                // Обновляем значение селектора языка после загрузки переводов
+                langSelector.value = newLangCode;
             }
         }
 
@@ -644,37 +719,65 @@
             window.scrollTo(0, 0);
         }
 
+        // --- ИНИЦИАЛИЗАЦИЯ TonConnect (теперь без restoreConnection и обработки ошибок на старте) ---
         async function initializeTonConnect() {
-            try {
-                if (tonConnectUI && tonConnectUI.wallet) return;
+            // Проверяем, инициализирован ли уже TonConnect UI
+            if (tonConnectUI) {
+                console.log("TonConnectUI уже инициализирован.");
+                return;
+            }
 
+            try {
+                console.log("Инициализация TonConnectUI...");
                 tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
                     manifestUrl: 'https://nakhuyproject.github.io/akhueno-project/tonconnect-manifest.json',
-                    // Указываем ID элемента, куда встроится кнопка TonConnect UI
                     buttonRootId: 'ton-connect-button'
                 });
 
+                // Регистрируем обработчик событий статуса кошелька
                 tonConnectUI.onStatusChange(async wallet => {
                     if (wallet) {
                         console.log("Кошелек подключен:", wallet);
                         userAddress = wallet.account.address;
+                        // Обновляем элемент адреса
                         walletAddressEl.textContent = userAddress;
                         walletInfo.classList.add('active');
                         await fetchJettonBalance(userAddress); // Загружаем баланс после подключения
                     } else {
                         console.log("Кошелек отключен");
                         userAddress = null;
+                        // Очищаем элемент адреса при отключении
+                        walletAddressEl.textContent = '';
                         walletInfo.classList.remove('active');
+                        // Опционально: сбросить баланс
+                        tokenBalanceEl.textContent = 'Баланс: 0 NAKHUY';
                     }
                 });
 
-                await tonConnectUI.restoreConnection();
+                // ПОТЕНЦИАЛЬНАЯ ПРОБЛЕМА: restoreConnection может вызвать ошибку при старте
+                // await tonConnectUI.restoreConnection(); // <-- Комментируем эту строку
 
             } catch (error) {
-                console.error('TonConnect error:', error);
-                showError('Ошибка подключения кошелька. Попробуйте снова.');
+                // Исключаем ошибки инициализации из показа пользователю при старте
+                console.error('Ошибка инициализации TonConnectUI (не критическая при старте):', error);
+                // showError('Ошибка подключения кошелька. Попробуйте снова.'); // <-- Убираем вызов showError здесь
             }
         }
+
+        // Функция для ручного восстановления соединения, если нужно, например, при входе на главную
+        async function attemptRestoreConnection() {
+            if (tonConnectUI) {
+                 try {
+                    console.log("Попытка восстановить соединение...");
+                    await tonConnectUI.restoreConnection();
+                 } catch (error) {
+                    console.info("Не удалось восстановить соединение (ожидаемо при первом запуске или отсутствии сохранённого сеанса):", error.message);
+                 }
+            } else {
+                console.warn("TonConnectUI не инициализирован для восстановления соединения.");
+            }
+        }
+
 
         async function fetchJettonBalance(address) {
             try {
@@ -773,59 +876,36 @@
             }
         }
 
-        // --- Address Conversion Helper ---
-        // Эта функция была проблемной. Нужно корректно декодировать Cell BOC в адрес.
-        // Стандартная библиотека tonweb или ton-core может быть более надежной,
-        // но для простоты GitHub Pages используем браузерную реализацию.
-        // ВНИМАНИЕ: Эта функция может быть хрупкой!
+        // --- Address Conversion Helper --- (оставлен как есть)
         function bufferToAddress(cellBocBase64) {
             try {
-                // Декодируем base64
                 const binaryString = atob(cellBocBase64);
                 const bytes = new Uint8Array(binaryString.length);
                 for (let i = 0; i < binaryString.length; i++) {
                     bytes[i] = binaryString.charCodeAt(i);
                 }
 
-                // Упрощённая логика для извлечения адреса из Cell BOC
-                // Это гипотетический пример, реальная структура может отличаться!
-                // Cell BOC может содержать биты и ссылки. Нужно правильно их обработать.
-                // Структура: [workchain_id (1 byte)] + [padding (1 byte)] + [hash_part (32 bytes)]
-                // В tonweb используется Address.parseRaw()
-                // Для корректной реализации на клиенте лучше использовать tonweb.min.js
-                // Но если ограничены GitHub Pages, можно попробовать адаптировать:
-                // https://github.com/toncenter/tonweb/blob/master/src/utils/Address.js
-
-                // Проверим длину. Минимум для адреса (workchain + hash) = 1 + 1 + 32 = 34 байта
                 if (bytes.length < 34) {
                     console.error("Cell BOC too short for address extraction");
                     return null;
                 }
 
-                const workchain = bytes[0]; // Workchain ID
-                const hashPart = bytes.slice(2, 34); // Пропускаем workchain и padding
+                const workchain = bytes[0];
+                const hashPart = bytes.slice(2, 34);
 
-                // Собираем буфер для адреса
-                let addressBuffer = new Uint8Array([workchain, 0]); // Добавляем padding
+                let addressBuffer = new Uint8Array([workchain, 0]);
                 addressBuffer = new Uint8Array([...addressBuffer, ...hashPart]);
 
-                // Преобразуем буфер в строку
                 let addressString = '';
                 for (let i = 0; i < addressBuffer.length; i++) {
                     addressString += String.fromCharCode(addressBuffer[i]);
                 }
 
-                // Кодируем в base64 и форматируем
                 const base64Url = btoa(addressString)
                     .replace(/\+/g, '-')
                     .replace(/\//g, '_')
                     .replace(/=/g, '');
 
-                // Возвращаем адрес в формате Base64Url (стандартный для TON)
-                // Обычно начинается с EQ или UQ
-                // EQ указывает на bounceable адрес
-                // Тут нужно точно знать, bounceable или нет.
-                // Для jetton wallet, вероятно, bounceable.
                 return 'EQ' + base64Url;
 
             } catch (e) {
@@ -872,7 +952,7 @@
             const translations = await loadTranslations(currentLang);
             applyTranslations(translations);
 
-            // Инициализация TonConnect
+            // ИНИЦИАЛИЗАЦИЯ TonConnect БЕЗ автоматического восстановления
             await initializeTonConnect();
 
             // Telegram Web App
