@@ -3,7 +3,8 @@ const JETTON_MASTER = 'EQA6usPqmsa9I2QHrDUTW_c6xj0v6WPwffyW9uXiwjKBLwBX';
 const TON_CENTER_API = 'https://toncenter.com/api/v2/jsonRPC';
 
 // --- DOM Elements ---
-const logoClickable = document.getElementById('logoClickable');
+// ИЗМЕНЕНО: Теперь logoClickable указывает на элемент с ID 'ton-connect-button'
+const logoClickable = document.getElementById('ton-connect-button');
 const walletInfo = document.getElementById('walletInfo');
 const walletAddressEl = document.getElementById('walletAddress');
 const tokenBalanceEl = document.getElementById('tokenBalance');
@@ -84,7 +85,7 @@ function showSection(sectionId) {
     window.scrollTo(0, 0);
 }
 
-// --- ИНИЦИАЛИЗАЦИЯ TonConnect (без кнопки) ---
+// --- ИНИЦИАЛИЗАЦИЯ TonConnect (теперь с buttonRootId) ---
 async function initializeTonConnect() {
     // Проверяем, инициализирован ли уже TonConnect UI
     if (tonConnectUI) {
@@ -96,7 +97,8 @@ async function initializeTonConnect() {
         console.log("Инициализация TonConnectUI...");
         tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: 'https://nakhuyproject.github.io/akhueno-project/tonconnect-manifest.json',
-            // УБРАТЬ buttonRootId, чтобы не создавать кнопку
+            // УКАЗЫВАЕМ, ЧТО КНОПКА ПОДКЛЮЧЕНИЯ НАХОДИТСЯ В ЭЛЕМЕНТЕ С ID 'ton-connect-button'
+            buttonRootId: 'ton-connect-button'
         });
 
         // Регистрируем обработчик событий статуса кошелька
@@ -129,15 +131,29 @@ async function initializeTonConnect() {
     }
 }
 
-// Функция для ручного подключения кошелька
-function connectWallet() {
-    if (tonConnectUI) {
-        tonConnectUI.connectWallet();
-    } else {
-        console.warn("TonConnectUI не инициализирован для подключения.");
-    }
+// Функция для ручного подключения кошелька (теперь не нужна, если используется buttonRootId)
+// function connectWallet() {
+//     if (tonConnectUI) {
+//         tonConnectUI.connectWallet();
+//     } else {
+//         console.warn("TonConnectUI не инициализирован для подключения.");
+//     }
+// }
+
+// --- UI & Logic Functions ---
+function showError(message) {
+    errorMessageEl.textContent = message;
+    errorMessageEl.style.display = 'block';
+    setTimeout(() => {
+        errorMessageEl.style.display = 'none';
+    }, 5000);
 }
 
+function showSection(sectionId) {
+    document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+    document.getElementById(sectionId).classList.add('active');
+    window.scrollTo(0, 0);
+}
 
 async function fetchJettonBalance(address) {
     try {
@@ -286,8 +302,8 @@ backHomeBtn.addEventListener('click', () => showSection('home'));
 
 langSelector.addEventListener('change', (e) => changeLanguage(e.target.value));
 
-// --- НОВОЕ: Обработчик клика на логотип ---
-logoClickable.addEventListener('click', connectWallet);
+// --- УДАЛЕН: Обработчик клика на логотип, так как TonConnect сам его обработает ---
+// logoClickable.addEventListener('click', connectWallet);
 
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', async () => {
