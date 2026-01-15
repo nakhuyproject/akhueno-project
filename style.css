@@ -148,11 +148,14 @@ body {
     height: 180px;
     margin: 0 auto 20px;
     animation: floating 6s ease-in-out infinite;
-    cursor: pointer;
+    cursor: pointer; /* Убедимся, что курсор указывает на кнопку */
     border-radius: 50%;
-    overflow: hidden;
+    overflow: visible; /* Изменено с hidden на visible */
     border: 3px solid var(--fg-accent-2);
     box-shadow: 0 0 25px rgba(0, 255, 255, 0.5);
+    position: relative; /* Для z-index */
+    z-index: 10; /* Убедимся, что поверх ::before */
+    pointer-events: auto; /* Убедимся, что элемент принимает события */
 }
 .logo-wrapper:hover {
     transform: scale(1.05);

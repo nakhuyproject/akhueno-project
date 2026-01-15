@@ -85,76 +85,6 @@ function showSection(sectionId) {
     window.scrollTo(0, 0);
 }
 
-// --- ИНИЦИАЛИЗАЦИЯ TonConnect (теперь с buttonRootId) ---
-async function initializeTonConnect() {
-    // Проверяем, инициализирован ли уже TonConnect UI
-    if (tonConnectUI) {
-        console.log("TonConnectUI уже инициализирован.");
-        return;
-    }
-
-    try {
-        console.log("Инициализация TonConnectUI...");
-        tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-            manifestUrl: 'https://nakhuyproject.github.io/akhueno-project/tonconnect-manifest.json',
-            // УКАЗЫВАЕМ, ЧТО КНОПКА ПОДКЛЮЧЕНИЯ НАХОДИТСЯ В ЭЛЕМЕНТЕ С ID 'ton-connect-button'
-            buttonRootId: 'ton-connect-button'
-        });
-
-        // Регистрируем обработчик событий статуса кошелька
-        tonConnectUI.onStatusChange(async wallet => {
-            if (wallet) {
-                console.log("Кошелек подключен:", wallet);
-                userAddress = wallet.account.address;
-                // Обновляем элемент адреса
-                walletAddressEl.textContent = userAddress;
-                walletInfo.classList.add('active');
-                await fetchJettonBalance(userAddress); // Загружаем баланс после подключения
-            } else {
-                console.log("Кошелек отключен");
-                userAddress = null;
-                // Очищаем элемент адреса при отключении
-                walletAddressEl.textContent = '';
-                walletInfo.classList.remove('active');
-                // Опционально: сбросить баланс
-                tokenBalanceEl.textContent = 'Баланс: 0 NAKHUY';
-            }
-        });
-
-        // ПОПЫТКА ВОССТАНОВИТЬ СОЕДИНЕНИЕ ПРИ ЗАГРУЗКЕ
-        await tonConnectUI.restoreConnection();
-
-    } catch (error) {
-        // Обработка ошибок инициализации и восстановления
-        console.error('Ошибка инициализации TonConnectUI:', error);
-        // showError('Ошибка подключения кошелька. Попробуйте снова.'); // Можно показать, если критично
-    }
-}
-
-// Функция для ручного подключения кошелька (теперь не нужна, если используется buttonRootId)
-// function connectWallet() {
-//     if (tonConnectUI) {
-//         tonConnectUI.connectWallet();
-//     } else {
-//         console.warn("TonConnectUI не инициализирован для подключения.");
-//     }
-// }
-
-// --- UI & Logic Functions ---
-function showError(message) {
-    errorMessageEl.textContent = message;
-    errorMessageEl.style.display = 'block';
-    setTimeout(() => {
-        errorMessageEl.style.display = 'none';
-    }, 5000);
-}
-
-function showSection(sectionId) {
-    document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
-    document.getElementById(sectionId).classList.add('active');
-    window.scrollTo(0, 0);
-}
-
 async function fetchJettonBalance(address) {
     try {
         tokenBalanceEl.textContent = 'Загрузка...'; // Обновляем статус
@@ -302,14 +232,45 @@ backHomeBtn.addEventListener('click', () => showSection('home'));
 
 langSelector.addEventListener('change', (e) => changeLanguage(e.target.value));
 
-// --- УДАЛЕН: Обработчик клика на логотип, так как TonConnect сам его обработает ---
-// logoClickable.addEventListener('click', connectWallet);
-
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', async () => {
-    // Загрузка темы
-    if (localStorage.getItem('theme') === 'light') {
-        document.body.classList.add('light');
+    // ИНИЦИАЛИЗАЦИЯ TonConnect С buttonRootId И ВОССТАНОВЛЕНИЕМ
+    if (!tonConnectUI) { // Проверяем, не инициализирован ли уже
+        try {
+            console.log("Инициализация TonConnectUI...");
+            tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+                manifestUrl: 'https://nakhuyproject.github.io/akhueno-project/tonconnect-manifest.json',
+                buttonRootId: 'ton-connect-button'
+            });
+
+            // Регистрируем обработчик событий статуса кошелька
+            tonConnectUI.onStatusChange(async wallet => {
+                if (wallet) {
+                    console.log("Кошелек подключен:", wallet);
+                    userAddress = wallet.account.address;
+                    // Обновляем элемент адреса
+                    walletAddressEl.textContent = userAddress;
+                    walletInfo.classList.add('active');
+                    await fetchJettonBalance(userAddress); // Загружаем баланс после подключения
+                } else {
+                    console.log("Кошелек отключен");
+                    userAddress = null;
+                    // Очищаем элемент адреса при отключении
+                    walletAddressEl.textContent = '';
+                    walletInfo.classList.remove('active');
+                    // Опционально: сбросить баланс
+                    tokenBalanceEl.textContent = 'Баланс: 0 NAKHUY';
+                }
+            });
+
+            // ПОПЫТКА ВОССТАНОВИТЬ СОЕДИНЕНИЕ ПРИ ЗАГРУЗКЕ
+            await tonConnectUI.restoreConnection();
+
+        } catch (error) {
+            // Обработка ошибок инициализации и восстановления
+            console.error('Ошибка инициализации TonConnectUI:', error);
+            // showError('Ошибка подключения кошелька. Попробуйте снова.'); // Можно показать, если критично
+        }
     }
 
     // Определение языка
@@ -331,8 +292,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const translations = await loadTranslations(currentLang);
     applyTranslations(translations);
 
-    // ИНИЦИАЛИЗАЦИЯ TonConnect С ВОССТАНОВЛЕНИЕМ
-    await initializeTonConnect();
+    // Загрузка темы
+    if (localStorage.getItem('theme') === 'light') {
+        document.body.classList.add('light');
+    }
 
     // Telegram Web App
     if (tgWebApp) {
