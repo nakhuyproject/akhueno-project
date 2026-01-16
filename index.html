@@ -570,7 +570,6 @@
         let tonConnectUI = null;
         let userAddress = null;
         let currentLang = 'ru';
-        // Переменная для отслеживания инициализации
         let isTonConnectInitializing = false;
 
         // --- Другие переменные ---
@@ -652,22 +651,18 @@
 
         // --- Функция инициализации TonConnect UI ---
         async function initializeTonConnect() {
-            if (isTonConnectInitializing) {
-                // Уже инициализируется, ждать не нужно, можно вызвать connectWallet позже
-                return;
+            if (isTonConnectInitializing || tonConnectUI) { // Проверяем также tonConnectUI
+                return; // Уже инициализируется или уже инициализирован
             }
 
             isTonConnectInitializing = true; // Устанавливаем флаг
 
             try {
-                if (tonConnectUI && tonConnectUI.wallet) return; // Уже инициализировано и подключено
-
                 // Проверяем, доступен ли TON_CONNECT_UI
                 if (typeof TON_CONNECT_UI === 'undefined') {
                     console.error("TonConnect UI library not loaded yet.");
                     showError("Ошибка: Библиотека TonConnect не загрузилась.");
-                    isTonConnectInitializing = false; // Сброс флага в случае ошибки
-                    return;
+                    return; // Не устанавливаем tonConnectUI, инициализация считается неудачной
                 }
 
                 // Инициализируем TonConnectUI БЕЗ buttonRootId
@@ -691,10 +686,12 @@
                 });
 
                 await tonConnectUI.restoreConnection(); // Пытаемся восстановить соединение при загрузке
+                console.log("TonConnect UI successfully initialized and restored connection.");
 
             } catch (error) {
-                console.error('TonConnect error:', error);
-                showError('Ошибка подключения кошелька. Попробуйте снова.');
+                console.error('TonConnect error during initialization:', error);
+                // showError('Ошибка подключения кошелька. Попробуйте снова.'); // Можно оставить, если хочется показать ошибку при инициализации
+                // Не устанавливаем tonConnectUI = null; - пусть остаётся null, если инициализация не удалась
             } finally {
                 isTonConnectInitializing = false; // Сбрасываем флаг в любом случае
             }
@@ -826,7 +823,7 @@
             while (isTonConnectInitializing) {
                 await new Promise(resolve => setTimeout(resolve, 100)); // Ждём 100мс
             }
-            // Теперь tonConnectUI гарантированно инициализирован или произошла ошибка
+            // Теперь tonConnectUI гарантированно инициализирован или остался null
         }
 
         // --- Event Listeners для интерфейса ---
@@ -834,11 +831,11 @@
              // Ждём завершения инициализации
              await waitForTonConnectInitialization();
 
-             if (tonConnectUI) {
+             if (tonConnectUI) { // Проверяем, успешно ли инициализирован
                  tonConnectUI.connectWallet();
              } else {
-                 console.error("TonConnectUI failed to initialize.");
-                 showError("Ошибка инициализации кошелька.");
+                 console.error("TonConnectUI failed to initialize or initialization was interrupted.");
+                 showError("Ошибка инициализации кошелька. Попробуйте перезагрузить страницу.");
              }
         });
 
