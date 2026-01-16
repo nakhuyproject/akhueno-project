@@ -409,7 +409,8 @@
             .milestone { padding: 18px; margin-left: 30px; }
         }
     </style>
-    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <!-- Добавлен id и обработчик onload для скрипта TonConnect UI -->
+    <script id="tonconnect-script" src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js" onload="onTonConnectUILoaded()"></script>
     <!-- Добавлены библиотеки для работы с TON -->
     <script src="https://unpkg.com/@ton/ton@0.54.0/dist/bundle.es6.min.js"></script>
     <script src="https://unpkg.com/@ton/core@0.56.0/lib/index.js"></script>
@@ -419,7 +420,7 @@
     <div class="error-message" id="errorMessage"></div>
     <div class="container">
         <div class="header-controls">
-            <div class class="theme-toggle" id="themeToggle"><div class="toggle-thumb"></div></div>
+            <div class="theme-toggle" id="themeToggle"><div class="toggle-thumb"></div></div>
             <select class="lang-selector" id="langSelector">
                 <option value="ru">🇷🇺 Русский</option>
                 <option value="en">🇬🇧 English</option>
@@ -565,11 +566,19 @@
     </div>
 
     <script>
+        // --- Глобальные переменные ---
+        // Переменные, зависящие от TonConnect UI, теперь объявлены глобально
+        let tonConnectUI = null;
+        let userAddress = null;
+
+        // --- Другие переменные ---
         const JETTON_MASTER = 'EQA6usPqmsa9I2QHrDUTW_c6xj0v6WPwffyW9uXiwjKBLwBX';
         const TON_CENTER_API = 'https://toncenter.com/api/v2/jsonRPC';
+        let currentLang = 'ru';
 
         // --- DOM Elements ---
-        const logoClickable = document.getElementById('logoClickable'); // Теперь используется для подключения
+        // DOM элементы, не зависящие от TonConnect UI, можно получить сразу
+        const logoClickable = document.getElementById('logoClickable');
         const walletInfo = document.getElementById('walletInfo');
         const walletAddressEl = document.getElementById('walletAddress');
         const tokenBalanceEl = document.getElementById('tokenBalance');
@@ -578,7 +587,6 @@
         const roadmapBtn = document.getElementById('roadmapBtn');
         const backHomeBtn = document.getElementById('backHomeBtn');
         const langSelector = document.getElementById('langSelector');
-        // Элементы для перевода (добавлены id для удобства обновления)
         const mainTitle = document.getElementById('mainTitle');
         const taglineText = document.getElementById('taglineText');
         const footerPrediction = document.getElementById('footerPrediction');
@@ -587,12 +595,21 @@
         const roadmapSubtitle = document.getElementById('roadmapSubtitle');
         const finalNote = document.getElementById('finalNote');
 
-        // --- State Variables ---
-        let tonConnectUI = null;
-        let userAddress = null;
-        let currentLang = 'ru';
+        // --- Функции, не зависящие от TonConnect UI ---
+        function showError(message) {
+            errorMessageEl.textContent = message;
+            errorMessageEl.style.display = 'block';
+            setTimeout(() => {
+                errorMessageEl.style.display = 'none';
+            }, 5000);
+        }
 
-        // --- Translation Functions ---
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
         async function loadTranslations(langCode) {
             try {
                 const response = await fetch(`langs/${langCode}.json`);
@@ -633,24 +650,17 @@
             }
         }
 
-        // --- UI & Logic Functions ---
-        function showError(message) {
-            errorMessageEl.textContent = message;
-            errorMessageEl.style.display = 'block';
-            setTimeout(() => {
-                errorMessageEl.style.display = 'none';
-            }, 5000);
-        }
-
-        function showSection(sectionId) {
-            document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
-            document.getElementById(sectionId).classList.add('active');
-            window.scrollTo(0, 0);
-        }
-
+        // --- Функция инициализации TonConnect UI ---
         async function initializeTonConnect() {
             try {
                 if (tonConnectUI && tonConnectUI.wallet) return; // Уже инициализировано и подключено
+
+                // Проверяем, доступен ли TON_CONNECT_UI
+                if (typeof TON_CONNECT_UI === 'undefined') {
+                    console.error("TonConnect UI library not loaded yet.");
+                    showError("Ошибка: Библиотека TonConnect не загрузилась.");
+                    return;
+                }
 
                 // Инициализируем TonConnectUI БЕЗ buttonRootId
                 tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
@@ -680,6 +690,7 @@
             }
         }
 
+        // --- Функция получения баланса ---
         async function fetchJettonBalance(address) {
             try {
                 tokenBalanceEl.textContent = 'Загрузка...'; // Обновляем статус
@@ -799,9 +810,7 @@
             }
         }
 
-
-        // --- Event Listeners ---
-        // Теперь логотип вызывает подключение
+        // --- Event Listeners для интерфейса ---
         logoClickable.addEventListener('click', () => {
              if (tonConnectUI) {
                  tonConnectUI.connectWallet();
@@ -821,7 +830,13 @@
 
         langSelector.addEventListener('change', (e) => changeLanguage(e.target.value));
 
-        // --- Initialization ---
+        // --- Функция, вызываемая после загрузки скрипта TonConnect UI ---
+        async function onTonConnectUILoaded() {
+            console.log("TonConnect UI library loaded.");
+            await initializeTonConnect();
+        }
+
+        // --- Основная инициализация после загрузки DOM ---
         document.addEventListener('DOMContentLoaded', async () => {
             // Загрузка темы
             if (localStorage.getItem('theme') === 'light') {
@@ -847,14 +862,14 @@
             const translations = await loadTranslations(currentLang);
             applyTranslations(translations);
 
-            // Инициализация TonConnect
-            await initializeTonConnect();
-
             // Telegram Web App
             if (tgWebApp) {
                 tgWebApp.ready();
                 tgWebApp.expand();
             }
+
+            // NOTE: Инициализация TonConnect теперь происходит в onTonConnectUILoaded()
+            // после загрузки библиотеки, поэтому вызов здесь удален.
         });
     </script>
 </body>
