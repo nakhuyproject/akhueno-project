@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>AKHUENO PROJECT — НАХУЙ ❤</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.css">
+    <script src="https://telegram.org/js/telegram-web-app.js  "></script>
+    <link rel="stylesheet" href="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.css  ">
     <style>
         /* --- Глобальные переменные и сброс стилей --- */
         :root {
@@ -383,23 +383,6 @@
             padding-top: 25px;
             border-top: 2px dashed var(--fg-accent);
         }
-        /* --- Сообщение об ошибке --- */
-        .error-message {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--fg-accent);
-            color: white;
-            padding: 14px 28px;
-            border-radius: 8px;
-            z-index: 1000;
-            display: none;
-            text-align: center;
-            max-width: 90%;
-            box-shadow: 0 4px 20px rgba(255, 0, 0, 0.5);
-            font-weight: bold;
-        }
         /* --- Адаптивность --- */
         @media (max-width: 768px) {
             h1 { font-size: 2.2rem; }
@@ -409,14 +392,14 @@
             .milestone { padding: 18px; margin-left: 30px; }
         }
     </style>
-    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js  "></script>
     <!-- Добавлены библиотеки для работы с TON -->
-    <script src="https://unpkg.com/@ton/ton@0.54.0/dist/bundle.es6.min.js"></script>
-    <script src="https://unpkg.com/@ton/core@0.56.0/lib/index.js"></script>
-    <script src="https://unpkg.com/@ton/crypto@3.2.0/lib/index.js"></script>
+    <script src="https://unpkg.com/@ton/ton@0.54.0/dist/bundle.es6.min.js  "></script>
+    <script src="https://unpkg.com/@ton/core@0.56.0/lib/index.js  "></script>
+    <script src="https://unpkg.com/@ton/crypto@3.2.0/lib/index.js  "></script>
 </head>
 <body>
-    <div class="error-message" id="errorMessage"></div>
+    <!-- Удалён div с id="errorMessage" -->
     <div class="container">
         <div class="header-controls">
             <div class class="theme-toggle" id="themeToggle"><div class="toggle-thumb"></div></div>
@@ -433,7 +416,7 @@
                 <!-- Логотип теперь является триггером подключения -->
                 <div class="logo-wrapper" id="logoClickable">
                     <div class="logo">
-                        <img src="Logo.png" alt="Akhueno Project Logo" onerror="this.onerror=null;this.src='https://via.placeholder.com/160x160/0041f0/ffffff?text=AKHUENO';">
+                        <img src="Logo.png" alt="Akhueno Project Logo" onerror="this.onerror=null;this.src='https://via.placeholder.com/160x160/0041f0/ffffff?text=AKHUENO  ';">
                     </div>
                 </div>
                 <h1 id="mainTitle" data-i18n="title">AKHUENO PROJECT</h1>
@@ -529,7 +512,7 @@
                         <div class="milestone-desc" data-i18n="milestone_dao_desc">Теперь сообщество может голосовать за такие важные вещи, как цвет логотипа или какой мем запустить следующим. Власть — народу, нахуй ❤</div>
                     </div>
                     <div class="milestone" style="--i:12">
-                        <div class="milestone-title" data-i18n="milestone_crosschain_title">🌉 Кросс-чейн мост Земля-Марс</div>
+                        <div class="milestone-title" data-i18n="milestone_crosschain_title">海峡-чейн мост Земля-Марс</div>
                         <div class="milestone-date" data-i18n="milestone_crosschain_date">2095</div>
                         <div class="milestone-desc" data-i18n="milestone_crosschain_desc">Переводите токены между планетами без комиссий (комиссии всё же будут, нахуй ❤).</div>
                     </div>
@@ -566,14 +549,14 @@
 
     <script>
         const JETTON_MASTER = 'EQA6usPqmsa9I2QHrDUTW_c6xj0v6WPwffyW9uXiwjKBLwBX';
-        const TON_CENTER_API = 'https://toncenter.com/api/v2/jsonRPC';
+        const TON_CENTER_API = 'https://toncenter.com/api/v2/jsonRPC  ';
 
         // --- DOM Elements ---
         const logoClickable = document.getElementById('logoClickable'); // Теперь используется для подключения
         const walletInfo = document.getElementById('walletInfo');
         const walletAddressEl = document.getElementById('walletAddress');
         const tokenBalanceEl = document.getElementById('tokenBalance');
-        const errorMessageEl = document.getElementById('errorMessage');
+        // Убрана ссылка на errorMessageEl
         const themeToggle = document.getElementById('themeToggle');
         const roadmapBtn = document.getElementById('roadmapBtn');
         const backHomeBtn = document.getElementById('backHomeBtn');
@@ -634,14 +617,7 @@
         }
 
         // --- UI & Logic Functions ---
-        function showError(message) {
-            errorMessageEl.textContent = message;
-            errorMessageEl.style.display = 'block';
-            setTimeout(() => {
-                errorMessageEl.style.display = 'none';
-            }, 5000);
-        }
-
+        // Убрана функция showError
         function showSection(sectionId) {
             document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
             document.getElementById(sectionId).classList.add('active');
@@ -654,7 +630,7 @@
 
                 // Инициализируем TonConnectUI БЕЗ buttonRootId
                 tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-                    manifestUrl: 'https://nakhuyproject.github.io/akhueno-project/tonconnect-manifest.json'
+                    manifestUrl: 'https://nakhuyproject.github.io/akhueno-project/tonconnect-manifest.json  '
                     // Убрали: buttonRootId: 'ton-connect-button'
                 });
 
@@ -676,7 +652,7 @@
 
             } catch (error) {
                 console.error('TonConnect error:', error);
-                showError('Ошибка подключения кошелька. Попробуйте снова.');
+                // showError('Ошибка подключения кошелька. Попробуйте снова.'); // Закомментирован вызов showError
             }
         }
 
@@ -807,7 +783,7 @@
                  tonConnectUI.connectWallet();
              } else {
                  console.error("TonConnectUI not initialized yet.");
-                 showError("Инициализация кошелька...");
+                 // showError("Инициализация кошелька..."); // Закомментирован вызов showError
              }
         });
 
