@@ -530,7 +530,7 @@
                         <div class="milestone-desc" data-i18n="milestone_dao_desc">Теперь сообщество может голосовать за такие важные вещи, как цвет логотипа или какой мем запустить следующим. Власть — народу, нахуй ❤</div>
                     </div>
                     <div class="milestone" style="--i:12">
-                        <div class="milestone-title" data-i18n="milestone_crosschain_title">🌉 Кросс-чейн мост Земля-Марс</div>
+                        <div class="milestone-title" data-i18n="milestone_crosschain_title">海峡-чейн мост Земля-Марс</div>
                         <div class="milestone-date" data-i18n="milestone_crosschain_date">2095</div>
                         <div class="milestone-desc" data-i18n="milestone_crosschain_desc">Переводите токены между планетами без комиссий (комиссии всё же будут, нахуй ❤).</div>
                     </div>
@@ -567,17 +567,17 @@
 
     <script>
         // --- Глобальные переменные ---
-        // Переменные, зависящие от TonConnect UI, теперь объявлены глобально
         let tonConnectUI = null;
         let userAddress = null;
+        let currentLang = 'ru';
+        // Переменная для отслеживания инициализации
+        let isTonConnectInitializing = false;
 
         // --- Другие переменные ---
         const JETTON_MASTER = 'EQA6usPqmsa9I2QHrDUTW_c6xj0v6WPwffyW9uXiwjKBLwBX';
         const TON_CENTER_API = 'https://toncenter.com/api/v2/jsonRPC';
-        let currentLang = 'ru';
 
         // --- DOM Elements ---
-        // DOM элементы, не зависящие от TonConnect UI, можно получить сразу
         const logoClickable = document.getElementById('logoClickable');
         const walletInfo = document.getElementById('walletInfo');
         const walletAddressEl = document.getElementById('walletAddress');
@@ -652,6 +652,13 @@
 
         // --- Функция инициализации TonConnect UI ---
         async function initializeTonConnect() {
+            if (isTonConnectInitializing) {
+                // Уже инициализируется, ждать не нужно, можно вызвать connectWallet позже
+                return;
+            }
+
+            isTonConnectInitializing = true; // Устанавливаем флаг
+
             try {
                 if (tonConnectUI && tonConnectUI.wallet) return; // Уже инициализировано и подключено
 
@@ -659,6 +666,7 @@
                 if (typeof TON_CONNECT_UI === 'undefined') {
                     console.error("TonConnect UI library not loaded yet.");
                     showError("Ошибка: Библиотека TonConnect не загрузилась.");
+                    isTonConnectInitializing = false; // Сброс флага в случае ошибки
                     return;
                 }
 
@@ -687,6 +695,8 @@
             } catch (error) {
                 console.error('TonConnect error:', error);
                 showError('Ошибка подключения кошелька. Попробуйте снова.');
+            } finally {
+                isTonConnectInitializing = false; // Сбрасываем флаг в любом случае
             }
         }
 
@@ -810,13 +820,25 @@
             }
         }
 
+        // --- Async Function to Wait for Initialization ---
+        async function waitForTonConnectInitialization() {
+            // Ждем, пока инициализация начнётся и закончится
+            while (isTonConnectInitializing) {
+                await new Promise(resolve => setTimeout(resolve, 100)); // Ждём 100мс
+            }
+            // Теперь tonConnectUI гарантированно инициализирован или произошла ошибка
+        }
+
         // --- Event Listeners для интерфейса ---
-        logoClickable.addEventListener('click', () => {
+        logoClickable.addEventListener('click', async () => { // Делаем обработчик асинхронным
+             // Ждём завершения инициализации
+             await waitForTonConnectInitialization();
+
              if (tonConnectUI) {
                  tonConnectUI.connectWallet();
              } else {
-                 console.error("TonConnectUI not initialized yet.");
-                 showError("Инициализация кошелька...");
+                 console.error("TonConnectUI failed to initialize.");
+                 showError("Ошибка инициализации кошелька.");
              }
         });
 
