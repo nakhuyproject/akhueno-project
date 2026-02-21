@@ -3,5 +3,6 @@
     "name": "AKHUENO PROJECT",
     "iconUrl": "https://nakhuyproject.github.io/akhueno-project/assets/logo.png",
     "termsOfUseUrl": "https://nakhuyproject.github.io/akhueno-project/terms.html",
-    "privacyPolicyUrl": "https://nakhuyproject.github.io/akhueno-project/privacy.html"
+    "privacyPolicyUrl": "https://nakhuyproject.github.io/akhueno-project/privacy.html",
+    "callbackUrl": "https://t.me/akhueno_nakhuy_bot/akhueno"
 }
