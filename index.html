@@ -11,6 +11,7 @@
 </head>
 <body>
     <div class="container">
+        <!-- Шапка: тема + язык -->
         <div class="header-controls">
             <div class="theme-toggle" id="themeToggle">
                 <div class="toggle-thumb"></div>
@@ -23,35 +24,43 @@
             </select>
         </div>
 
+        <!-- Страница: Главная -->
         <div id="home" class="section active">
             <div class="hero-section">
+                <!-- Логотип (клик = подключение кошелька) -->
                 <div class="logo-wrapper" id="logoClickable">
                     <div class="logo">
-                        <img src="assets/logo.png" alt="Akhueno Project Logo" onerror="this.onerror=null;this.src='https://via.placeholder.com/160x160/0041f0/ffffff?text=AKHUENO  ';">
+                        <img src="assets/logo.png" alt="Akhueno Project Logo" 
+                             onerror="this.onerror=null;this.src='https://via.placeholder.com/160x160/0041f0/ffffff?text=AKHUENO';">
                     </div>
                 </div>
+                
                 <h1 id="mainTitle" data-i18n="title">AKHUENO PROJECT</h1>
                 <p class="tagline" id="taglineText" data-i18n="tagline">Новая веха в социально-экономических отношениях между людьми. Или нет. Но нахуй ❤</p>
-
+                
+                <!-- Инфо кошелька -->
                 <div class="wallet-info" id="walletInfo">
                     <div class="wallet-address" id="walletAddress"></div>
                     <div class="token-balance" id="tokenBalance" data-i18n="loading_balance">Загрузка...</div>
                 </div>
             </div>
 
+            <!-- Навигация -->
             <div class="nav-buttons">
                 <button class="nav-btn" id="roadmapBtn" data-i18n="nav_roadmap">Дорожная карта Нахуй♥️</button>
             </div>
+            
             <div class="footer">
                 <p id="footerPrediction" data-i18n="footer_prediction">🔮 ЧТО БУДЕТ ДАЛЬШЕ?</p>
                 <p id="footerHeart" data-i18n="footer_heart">Хуй знает, нахуй ❤</p>
             </div>
         </div>
 
+        <!-- Страница: Roadmap -->
         <div id="roadmap" class="section">
             <h1 id="roadmapTitle" data-i18n="roadmap_title">🚀 NAKHUY ROADMAP 2124 EDITION</h1>
             <p id="roadmapSubtitle" data-i18n="roadmap_subtitle">(составлено при полной луне, нахуй ❤)</p>
-
+            
             <div class="roadmap">
                 <div class="era">
                     <div class="era-title" data-i18n="era_start_title" data-era-icon="🌑">🌑 2025–2030: ЭПОХА ХАОТИЧНОГО СТАРТА</div>
@@ -76,7 +85,7 @@
                     <div class="milestone" style="--i:4">
                         <div class="milestone-title" data-i18n="milestone_spambot_title">🤖 Маркетинговый Mini-App 'SpamBot 3000'</div>
                         <div class="milestone-date" data-i18n="milestone_spambot_date">2032</div>
-                        <div class="milestone-desc" data-i18n="milestone_spambot_desc">Этот бот будет слать вам 150 уведомлений в день. Проснулся? Нахуй ❤, вот тебе реклама. Лег спать? Нахуй ❤, вот тебя NFT. Отпишешься — бан, нахуй.</div>
+                        <div class="milestone-desc" data-i18n="milestone_spambot_desc">Этот бот будет слать вам 150 уведомлений в день. Проснулся? Нахуй ❤, вот тебе реклама. Лег спать? Нахуй ❤, вот тебе NFT. Отпишешься — бан, нахуй.</div>
                     </div>
                     <div class="milestone" style="--i:5">
                         <div class="milestone-title" data-i18n="milestone_democracy_title">⚖ Смарт-контракт 'Nakhuy Democracy'</div>
@@ -120,7 +129,7 @@
                         <div class="milestone-desc" data-i18n="milestone_dao_desc">Теперь сообщество может голосовать за такие важные вещи, как цвет логотипа или какой мем запустить следующим. Власть — народу, нахуй ❤</div>
                     </div>
                     <div class="milestone" style="--i:12">
-                        <div class="milestone-title" data-i18n="milestone_crosschain_title">海峡-чейн мост Земля-Марс</div>
+                        <div class="milestone-title" data-i18n="milestone_crosschain_title">Кросс-чейн мост Земля-Марс</div>
                         <div class="milestone-date" data-i18n="milestone_crosschain_date">2095</div>
                         <div class="milestone-desc" data-i18n="milestone_crosschain_desc">Переводите токены между планетами без комиссий (комиссии всё же будут, нахуй ❤).</div>
                     </div>
@@ -144,21 +153,23 @@
                     </div>
                 </div>
             </div>
-
+            
             <div class="end-note">
                 → ∞<br><br>
                 <span id="finalNote" data-i18n="final_note">Хуй знает, нахуй ❤</span>
             </div>
+            
             <div class="nav-buttons" style="margin-top:40px">
                 <button class="nav-btn" id="backHomeBtn" data-i18n="nav_back_home">← Назад на главную</button>
             </div>
         </div>
     </div>
 
+    <!-- ✅ СКРЫТЫЙ КОНТЕЙНЕР ДЛЯ TONCONNECT (обязательно!) -->
+    <div id="tonconnect-button" style="display:none;"></div>
+
+    <!-- Скрипты -->
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-    <script src="https://unpkg.com/@ton/ton@0.54.0/dist/bundle.es6.min.js"></script>
-    <script src="https://unpkg.com/@ton/core@0.56.0/lib/index.js"></script>
-    <script src="https://unpkg.com/@ton/crypto@3.2.0/lib/index.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>
