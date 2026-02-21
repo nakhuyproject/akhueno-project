@@ -16,12 +16,16 @@ const CONFIG = {
     DECIMALS: 9,
     
     // Символ токена для fallback
-    SYMBOL: 'NKH'
+    SYMBOL: 'NKH',
+    
+    // ⏱️ Время долгого нажатия для отключения (мс)
+    LONG_PRESS_DURATION: 3000
 };
 
 // ================= DOM ELEMENTS =================
 const elements = {
     logoClickable: document.getElementById('logoClickable'),
+    logo: document.querySelector('.logo'),
     walletInfo: document.getElementById('walletInfo'),
     walletAddress: document.getElementById('walletAddress'),
     tokenBalance: document.getElementById('tokenBalance'),
@@ -40,6 +44,12 @@ let tonConnectUI = null;
 let userAddress = null;
 let currentLang = 'ru';
 let translations = {};
+
+// ⏱️ Переменные для long press
+let longPressTimer = null;
+let longPressStartTime = null;
+let isLongPress = false;
+let progressInterval = null;
 
 // ================= TELEGRAM WEBAPP =================
 function initTelegramWebApp() {
@@ -183,7 +193,6 @@ async function fetchJettonBalance(rawAddress) {
     
     try {
         // ✅ Запрос к TonAPI с параметром currencies=* (показывает unverifed-джеттоны)
-        // TonAPI принимает raw-адрес напрямую: "0:abc123..."
         const url = `${CONFIG.TONAPI_BASE}/accounts/${rawAddress}/jettons?currencies=*`;
         
         const res = await fetch(url, { 
@@ -197,7 +206,7 @@ async function fetchJettonBalance(rawAddress) {
         const data = await res.json();
         console.log('TonAPI response:', JSON.stringify(data).slice(0, 500));
         
-        // ✅ Поиск джеттона по ТОЧНОМУ адресу (сравнение в нижнем регистре)
+        // ✅ Поиск джеттона по ТОЧНОМУ адресу
         const jetton = data.balances?.find(j => 
             j.jetton?.address?.toLowerCase() === CONFIG.JETTON_ADDRESS.toLowerCase()
         );
@@ -223,7 +232,7 @@ async function fetchJettonBalance(rawAddress) {
     }
 }
 
-// ================= TONCONNECT (ИСПРАВЛЕННЫЙ ДЛЯ MINI APP) =================
+// ================= TONCONNECT =================
 function initTonConnect() {
     const TC = window.TonConnectUI || window.TON_CONNECT_UI?.TonConnectUI;
     
@@ -238,11 +247,9 @@ function initTonConnect() {
         tonConnectUI = typeof TC === 'function' 
             ? new TC({ 
                 manifestUrl: CONFIG.MANIFEST_URL,
-                buttonRootId: 'tonconnect-button',  // ✅ Скрытый контейнер в index.html
-                
-                // ✅ Конфигурация действий для Telegram Mini App
+                buttonRootId: 'tonconnect-button',
                 actionsConfiguration: {
-                    twaReturnUrl: CONFIG.TWA_RETURN_URL  // Возврат в Mini App после подключения
+                    twaReturnUrl: CONFIG.TWA_RETURN_URL
                 }
             })
             : TC.create({ 
@@ -259,11 +266,9 @@ function initTonConnect() {
                 console.log('✅ Кошелек подключен:', wallet.account.address);
                 userAddress = wallet.account.address;
                 
-                // Показываем адрес (короткая версия)
                 elements.walletAddress.textContent = formatAddress(userAddress);
                 elements.walletInfo.classList.add('active');
                 
-                // Загружаем баланс
                 await fetchJettonBalance(userAddress);
                 
                 // ✅ Haptic feedback для Telegram
@@ -276,10 +281,15 @@ function initTonConnect() {
                 elements.walletInfo.classList.remove('active');
                 elements.walletAddress.textContent = '';
                 elements.tokenBalance.textContent = translations.loading_balance || 'Загрузка...';
+                
+                // ✅ Haptic feedback для отключения
+                if (window.Telegram?.WebApp?.HapticFeedback) {
+                    window.Telegram.WebApp.HapticFeedback.notificationOccurred('warning');
+                }
             }
         });
         
-        // ✅ Восстановление сессии при перезагрузке
+        // ✅ Восстановление сессии
         tonConnectUI.restoreConnection();
         console.log('TonConnect initialized');
         
@@ -289,20 +299,98 @@ function initTonConnect() {
     }
 }
 
-// ✅ Подключение кошелька по клику на логотип
+// ================= ЛОГИКА LONG PRESS (3 секунды) =================
+
+// Начало нажатия
+function handlePressStart(e) {
+    if (e.type === 'touchstart') {
+        e.preventDefault();
+    }
+    
+    isLongPress = false;
+    longPressStartTime = Date.now();
+    
+    // Запускаем таймер долгого нажатия
+    longPressTimer = setTimeout(() => {
+        isLongPress = true;
+        
+        // Визуальный фидбек — сильная вибрация
+        if (window.Telegram?.WebApp?.HapticFeedback) {
+            window.Telegram.WebApp.HapticFeedback.impactOccurred('heavy');
+        }
+        
+        // Визуальная индикация на логотипе
+        if (elements.logo) {
+            elements.logo.style.transform = 'scale(0.9)';
+            elements.logo.style.filter = 'brightness(0.7) sepia(1) hue-rotate(-50deg) saturate(3)';
+        }
+        
+        console.log('🔴 Long press detected — disconnect wallet');
+        
+        // Отключаем кошелек
+        disconnectWallet();
+        
+    }, CONFIG.LONG_PRESS_DURATION);
+    
+    // Анимация прогресса
+    let progress = 0;
+    progressInterval = setInterval(() => {
+        progress += 100 / (CONFIG.LONG_PRESS_DURATION / 50);
+        if (elements.logo && progress < 100) {
+            const scale = 1 - (progress / 200);
+            elements.logo.style.transform = `scale(${scale})`;
+        }
+    }, 50);
+}
+
+// Конец нажатия
+function handlePressEnd(e) {
+    clearTimeout(longPressTimer);
+    clearInterval(progressInterval);
+    
+    // Возвращаем стили логотипа
+    if (elements.logo) {
+        elements.logo.style.transform = '';
+        elements.logo.style.filter = '';
+    }
+    
+    // Если это было короткое нажатие (< 3 сек) — подключаем кошелек
+    if (!isLongPress) {
+        const pressDuration = Date.now() - longPressStartTime;
+        
+        if (pressDuration < 200) {
+            console.log('⚠️ Too short tap, ignored');
+            return;
+        }
+        
+        console.log('🟢 Short tap detected — connect wallet');
+        connectWallet();
+    }
+}
+
+// Отмена нажатия
+function handlePressCancel() {
+    clearTimeout(longPressTimer);
+    clearInterval(progressInterval);
+    isLongPress = false;
+    
+    if (elements.logo) {
+        elements.logo.style.transform = '';
+        elements.logo.style.filter = '';
+    }
+}
+
+// ✅ Подключение кошелька (короткий тап)
 async function connectWallet() {
     if (!tonConnectUI) {
         console.error('TonConnect not initialized');
         return;
     }
     
-    // ✅ Haptic feedback перед открытием модалки
     if (window.Telegram?.WebApp?.HapticFeedback) {
-        window.Telegram.WebApp.HapticFeedback.impactOccurred('heavy');
+        window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
     }
     
-    // ✅ Открываем модальное окно подключения
-    // В Mini App это автоматически откроет список кошельков с правильными deep links
     try {
         await tonConnectUI.openModal();
     } catch (e) {
@@ -310,10 +398,50 @@ async function connectWallet() {
     }
 }
 
+// ✅ Отключение кошелька (долгое нажатие)
+async function disconnectWallet() {
+    if (!tonConnectUI) {
+        console.error('TonConnect not initialized');
+        return;
+    }
+    
+    if (window.Telegram?.WebApp?.HapticFeedback) {
+        window.Telegram.WebApp.HapticFeedback.notificationOccurred('warning');
+    }
+    
+    try {
+        await tonConnectUI.disconnect();
+        console.log('✅ Wallet disconnected');
+        
+        userAddress = null;
+        elements.walletInfo.classList.remove('active');
+        elements.walletAddress.textContent = '';
+        elements.tokenBalance.textContent = translations.loading_balance || 'Загрузка...';
+        
+    } catch (e) {
+        console.error('disconnect error:', e);
+    }
+}
+
 // ================= EVENT LISTENERS =================
 function setupEventListeners() {
-    // ✅ Логотип → подключение кошелька
-    elements.logoClickable?.addEventListener('click', connectWallet);
+    // ✅ Логотип — поддержка touch и mouse для long press
+    if (elements.logoClickable) {
+        // Touch события (мобильные)
+        elements.logoClickable.addEventListener('touchstart', handlePressStart, { passive: false });
+        elements.logoClickable.addEventListener('touchend', handlePressEnd);
+        elements.logoClickable.addEventListener('touchcancel', handlePressCancel);
+        
+        // Mouse события (ПК)
+        elements.logoClickable.addEventListener('mousedown', handlePressStart);
+        elements.logoClickable.addEventListener('mouseup', handlePressEnd);
+        elements.logoClickable.addEventListener('mouseleave', handlePressCancel);
+        
+        // Предотвращаем контекстное меню при долгом нажатии
+        elements.logoClickable.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+        });
+    }
     
     // Тема
     elements.themeToggle?.addEventListener('click', toggleTheme);
@@ -339,7 +467,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 3. Язык
     await initLanguage();
     
-    // 4. TonConnect (с настройками для Mini App)
+    // 4. TonConnect
     initTonConnect();
     
     // 5. Event listeners
