@@ -1,126 +1,459 @@
-/* ===== БАЗОВЫЕ НАСТРОЙКИ ===== */
-* { box-sizing: border-box; margin: 0; padding: 0; }
+/* --- Глобальные переменные и сброс стилей --- */
 :root {
-  --bg: #0f0f0f; --text: #fff; --accent: #0088cc;
-  --card-bg: #1a1a1a; --border: #333; --success: #00c853;
-  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --bg-primary: #000;
+    --bg-secondary: #111;
+    --fg-primary: #e0e0e0;
+    --fg-accent: #ff2d55;
+    --fg-accent-hover: #ff0033;
+    --fg-accent-2: #00ffff;
+    --fg-accent-3: #ffff00;
+    --card-bg: rgba(30, 30, 40, 0.85);
+    --border-accent: var(--fg-accent);
+    --text-gradient: linear-gradient(45deg, var(--fg-accent), var(--fg-accent-2), var(--fg-accent-3));
+    --shadow-neon: 0 0 15px var(--fg-accent), 0 0 30px rgba(255, 45, 85, 0.3);
+    --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.5);
+    --radius: 16px;
+    --font-main: 'Arial Black', 'Arial Bold', Gadget, sans-serif;
+    --font-mono: 'Courier New', Courier, monospace;
 }
-body.light {
-  --bg: #f5f5f5; --text: #000; --accent: #0077aa;
-  --card-bg: #fff; --border: #ddd;
+
+.light {
+    --bg-primary: #fff;
+    --bg-secondary: #f0f0f0;
+    --fg-primary: #222;
+    --fg-accent: #d10022;
+    --fg-accent-hover: #a8001a;
+    --fg-accent-2: #00aacc;
+    --fg-accent-3: #d4af00;
+    --card-bg: rgba(250, 250, 255, 0.95);
+    --border-accent: var(--fg-accent);
+    --shadow-neon: 0 0 15px var(--fg-accent), 0 0 30px rgba(209, 0, 34, 0.3);
+    --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    transition: background-color 0.4s, color 0.4s, transform 0.2s, box-shadow 0.2s;
+}
+
 body {
-  font-family: var(--font);
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  padding: 16px;
-  transition: background 0.3s, color 0.3s;
-  -webkit-tap-highlight-color: transparent;
+    background: var(--bg-primary);
+    color: var(--fg-primary);
+    min-height: 100vh;
+    padding: 20px;
+    position: relative;
+    font-family: var(--font-main);
+    overflow-x: hidden;
 }
 
-/* ===== КОНТЕЙНЕР ===== */
-.container { max-width: 480px; margin: 0 auto; }
+/* --- Контейнер --- */
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
 
-/* ===== ШАПКА ===== */
+/* --- Хедер / Управление --- */
 .header-controls {
-  display: flex; justify-content: flex-end; gap: 12px;
-  margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 15px;
 }
+
+/* --- Переключатель темы --- */
 .theme-toggle {
-  width: 40px; height: 24px; background: var(--card-bg);
-  border-radius: 12px; position: relative; cursor: pointer;
-  border: 1px solid var(--border);
+    position: relative;
+    width: 60px;
+    height: 34px;
+    background: var(--card-bg);
+    border: 2px solid var(--border-accent);
+    border-radius: 17px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 2px;
+    z-index: 100;
 }
+
 .toggle-thumb {
-  position: absolute; top: 2px; left: 2px;
-  width: 20px; height: 20px; background: var(--accent);
-  border-radius: 50%; transition: transform 0.3s;
+    width: 26px;
+    height: 26px;
+    background: var(--fg-accent);
+    border-radius: 50%;
+    transition: transform 0.3s;
 }
-body.light .toggle-thumb { transform: translateX(16px); }
+
+.light .toggle-thumb {
+    transform: translateX(26px);
+    background: var(--fg-accent-2);
+}
+
+/* --- Переключатель языка --- */
 .lang-selector {
-  background: var(--card-bg); color: var(--text);
-  border: 1px solid var(--border); border-radius: 8px;
-  padding: 4px 8px; font-size: 14px;
+    background: var(--card-bg);
+    border: 2px solid var(--border-accent);
+    border-radius: var(--radius);
+    padding: 5px 10px;
+    color: var(--fg-primary);
+    font-family: var(--font-main);
+    font-size: 1rem;
+    cursor: pointer;
+    outline: none;
+    box-shadow: var(--shadow-neon);
 }
 
-/* ===== СЕКЦИИ ===== */
-.section { display: none; animation: fadeIn 0.3s ease; }
-.section.active { display: block; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.lang-selector:focus {
+    box-shadow: 0 0 0 3px rgba(255, 45, 85, 0.5);
+}
 
-/* ===== ГЛАВНАЯ ===== */
-.hero-section { text-align: center; padding: 20px 0; }
+/* --- Секции --- */
+.section {
+    display: none;
+}
+
+.section.active {
+    display: block;
+    animation: fadeInUp 0.5s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* --- Логотип и кнопка подключения --- */
+.hero-section {
+    text-align: center;
+    margin-bottom: 40px;
+    padding: 30px;
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    border: 1px solid var(--border-accent);
+    box-shadow: var(--shadow-card);
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 45, 85, 0.1) 0%, rgba(0, 0, 0, 0) 70%);
+    z-index: -1;
+}
+
 .logo-wrapper {
-  cursor: pointer; margin: 0 auto 20px;
-  transition: transform 0.2s;
+    display: block;
+    width: 180px;
+    height: 180px;
+    margin: 0 auto 20px;
+    animation: floating 6s ease-in-out infinite;
+    cursor: pointer;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid var(--fg-accent-2);
+    box-shadow: 0 0 25px rgba(0, 255, 255, 0.5);
 }
-.logo-wrapper:active { transform: scale(0.98); }
+
+.logo-wrapper:hover {
+    transform: scale(1.05);
+    animation: none;
+    box-shadow: 0 0 40px rgba(0, 255, 255, 0.8);
+}
+
+.logo {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-secondary);
+    transition: transform 0.1s, filter 0.1s;
+}
+
 .logo img {
-  width: 120px; height: 120px; border-radius: 50%;
-  object-fit: cover; border: 3px solid var(--accent);
+    width: 90%;
+    height: 90%;
+    object-fit: contain;
+    filter: drop-shadow(0 0 10px rgba(255, 0, 85, 0.7));
 }
-h1 { font-size: 24px; margin: 16px 0 8px; }
-.tagline { font-size: 14px; opacity: 0.8; margin-bottom: 24px; }
 
-/* ===== КОШЕЛЁК ===== */
+@keyframes floating {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+}
+
+/* --- Анимация для long press индикации --- */
+.logo-wrapper.long-press {
+    animation: longPressPulse 0.5s ease-in-out infinite;
+}
+
+@keyframes longPressPulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 25px rgba(0, 255, 255, 0.5);
+    }
+    50% {
+        transform: scale(0.95);
+        box-shadow: 0 0 40px rgba(255, 0, 85, 0.8);
+    }
+}
+
+/* --- Информация о кошельке --- */
 .wallet-info {
-  background: var(--card-bg); border-radius: 12px;
-  padding: 16px; margin: 20px 0; display: none;
-  border: 1px solid var(--border);
+    margin: 25px 0;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: var(--radius);
+    border-left: 4px solid var(--fg-accent);
+    opacity: 0;
+    height: 0;
+    overflow: hidden;
+    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
 }
-.wallet-info.active { display: block; }
+
+.wallet-info.active {
+    opacity: 1;
+    height: auto;
+    padding: 20px;
+}
+
 .wallet-address {
-  font-family: monospace; font-size: 13px;
-  word-break: break-all; margin-bottom: 8px; opacity: 0.9;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    color: var(--fg-accent-2);
+    background: rgba(0, 100, 255, 0.1);
+    padding: 8px 15px;
+    border-radius: 8px;
+    display: inline-block;
+    margin: 8px 0;
+    word-break: break-all;
+    border: 1px dashed var(--fg-accent-2);
 }
+
 .token-balance {
-  font-size: 20px; font-weight: 600; color: var(--accent);
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: var(--fg-accent-3);
+    margin-top: 10px;
+    text-shadow: 0 0 8px rgba(255, 255, 0, 0.7);
+    background: var(--text-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
-/* ===== КНОПКИ ===== */
+/* --- Заголовки и текст --- */
+h1 {
+    font-size: 2.8rem;
+    font-weight: 900;
+    text-align: center;
+    margin: 15px 0;
+    background: var(--text-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 10px rgba(255, 45, 85, 0.3);
+}
+
+.tagline {
+    font-size: 1.2rem;
+    color: var(--fg-accent-2);
+    opacity: 0.9;
+    font-style: italic;
+    text-align: center;
+    margin: 15px 0 30px;
+    padding: 0 10px;
+}
+
+/* --- Навигационные кнопки --- */
+.nav-buttons {
+    text-align: center;
+    margin: 30px 0;
+}
+
 .nav-btn {
-  width: 100%; padding: 14px; margin: 8px 0;
-  background: var(--accent); color: #fff;
-  border: none; border-radius: 12px;
-  font-size: 16px; font-weight: 500; cursor: pointer;
-  transition: opacity 0.2s;
+    background: linear-gradient(45deg, var(--fg-accent), var(--fg-accent-2));
+    color: white;
+    border: none;
+    padding: 14px 32px;
+    border-radius: 50px;
+    font-weight: bold;
+    font-size: 1.1rem;
+    cursor: pointer;
+    margin: 0 15px;
+    box-shadow: var(--shadow-neon);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
 }
-.nav-btn:active { opacity: 0.9; }
-.back-btn { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
 
-/* ===== ROADMAP ===== */
-.roadmap { margin: 24px 0; }
-.era { margin-bottom: 32px; }
+.nav-btn::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: 0.5s;
+}
+
+.nav-btn:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 0 25px var(--fg-accent), 0 0 40px rgba(255, 45, 85, 0.5);
+}
+
+.nav-btn:hover::before {
+    left: 100%;
+}
+
+.nav-btn:active {
+    transform: translateY(1px) scale(0.98);
+}
+
+/* --- Дорожная карта --- */
+.roadmap {
+    margin-top: 30px;
+}
+
+.era {
+    margin: 50px 0 40px;
+    position: relative;
+}
+
+.era::before {
+    content: "";
+    position: absolute;
+    left: 20px;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--fg-accent);
+    border-radius: 2px;
+}
+
 .era-title {
-  font-size: 16px; font-weight: 600; margin-bottom: 16px;
-  padding: 8px 12px; background: var(--card-bg);
-  border-radius: 8px; border-left: 3px solid var(--accent);
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--fg-accent-3);
+    text-align: left;
+    margin-bottom: 25px;
+    padding-left: 40px;
+    position: relative;
 }
+
+.era-title::before {
+    content: attr(data-era-icon);
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.8rem;
+}
+
 .milestone {
-  background: var(--card-bg); border-radius: 12px;
-  padding: 16px; margin: 12px 0;
-  border: 1px solid var(--border);
-  animation: slideIn 0.3s ease both;
-  animation-delay: calc(var(--i) * 0.1s);
+    background: var(--card-bg);
+    border-left: 5px solid var(--fg-accent-2);
+    padding: 22px;
+    margin: 20px 0 20px 40px;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    opacity: 0;
+    transform: translateX(-30px);
+    animation: slideInRight 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
-@keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: none; } }
-.milestone-title { font-weight: 600; margin-bottom: 4px; }
-.milestone-date { font-size: 12px; opacity: 0.7; margin-bottom: 8px; }
-.milestone-desc { font-size: 14px; opacity: 0.9; line-height: 1.4; }
 
-/* ===== FOOTER ===== */
-.footer { text-align: center; margin-top: 40px; opacity: 0.7; font-size: 13px; }
+.milestone:nth-child(odd) {
+    border-left-color: var(--fg-accent);
+}
 
-/* ===== RTL (Арабский) ===== */
+.milestone:nth-child(even) {
+    border-left-color: var(--fg-accent-3);
+}
+
+.light .milestone {
+    background: rgba(240, 240, 250, 0.7);
+}
+
+.milestone:nth-child(n) {
+    --delay: calc(0.1s * var(--i));
+    animation-delay: var(--delay);
+}
+
+@keyframes slideInRight {
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.milestone-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--fg-accent);
+    margin-bottom: 10px;
+}
+
+.milestone-date {
+    font-size: 0.95rem;
+    color: var(--fg-accent-2);
+    margin-bottom: 12px;
+    font-weight: 500;
+}
+
+.milestone-desc {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--fg-primary);
+    opacity: 0.9;
+}
+
+/* --- Концовка и футер --- */
+.end-note {
+    text-align: center;
+    margin-top: 60px;
+    font-size: 1.8rem;
+    color: var(--fg-accent);
+    font-weight: bold;
+    text-shadow: 0 0 15px var(--fg-accent);
+}
+
+.footer {
+    text-align: center;
+    color: var(--fg-primary);
+    opacity: 0.7;
+    font-size: 1rem;
+    margin-top: 60px;
+    padding-top: 25px;
+    border-top: 2px dashed var(--fg-accent);
+}
+
+/* --- Адаптивность --- */
+@media (max-width: 768px) {
+    h1 { font-size: 2.2rem; }
+    .logo-wrapper { width: 140px; height: 140px; }
+    .nav-btn { display: block; margin: 12px auto; width: 90%; }
+    .era-title { padding-left: 30px; font-size: 1.3rem; }
+    .milestone { padding: 18px; margin-left: 30px; }
+}
+
+/* --- RTL (Арабский) --- */
 [dir="rtl"] .header-controls { justify-content: flex-start; }
-[dir="rtl"] .era-title { border-left: none; border-right: 3px solid var(--accent); }
+[dir="rtl"] .era-title { border-left: none; border-right: 3px solid var(--fg-accent); }
 [dir="rtl"] .milestone { animation-name: slideInRTL; }
-@keyframes slideInRTL { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: none; } }
 
-/* ===== АДАПТИВ ===== */
-@media (max-width: 360px) {
-  h1 { font-size: 20px; }
-  .token-balance { font-size: 18px; }
-  .logo img { width: 100px; height: 100px; }
+@keyframes slideInRTL {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: none; }
 }
