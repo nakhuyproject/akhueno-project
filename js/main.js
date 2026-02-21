@@ -1,24 +1,96 @@
 // ================= КОНФИГУРАЦИЯ =================
-const JETTON_ADDRESS = '0:3abac3ea9ac6bd236407ac35135bf73ac63d2fe963f07dfc96f6e5e2c232812f'; // ✅ Правильный адрес NKH
-const TONAPI_BASE = 'https://tonapi.io/v2';
-const MANIFEST_URL = 'https://nakhuyproject.github.io/akhueno-project/tonconnect-manifest.json';
+const CONFIG = {
+    // ✅ ПРАВИЛЬНЫЙ АДРЕС ДЖЕТТОНА NKH (из TonAPI)
+    JETTON_ADDRESS: '0:3abac3ea9ac6bd236407ac35135bf73ac63d2fe963f07dfc96f6e5e2c232812f',
+    
+    // TonAPI.io endpoint
+    TONAPI_BASE: 'https://tonapi.io/v2',
+    
+    // Manifest URL (должен быть HTTPS)
+    MANIFEST_URL: 'https://nakhuyproject.github.io/akhueno-project/tonconnect-manifest.json',
+    
+    // Возврат в Mini App после подключения кошелька
+    TWA_RETURN_URL: 'https://t.me/akhueno_nakhuy_bot/akhueno',
+    
+    // Стандартные decimals для TON-джеттонов
+    DECIMALS: 9,
+    
+    // Символ токена для fallback
+    SYMBOL: 'NKH'
+};
 
 // ================= DOM ELEMENTS =================
-const logoClickable = document.getElementById('logoClickable');
-const walletInfo = document.getElementById('walletInfo');
-const walletAddressEl = document.getElementById('walletAddress');
-const tokenBalanceEl = document.getElementById('tokenBalance');
-const themeToggle = document.getElementById('themeToggle');
-const roadmapBtn = document.getElementById('roadmapBtn');
-const backHomeBtn = document.getElementById('backHomeBtn');
-const langSelector = document.getElementById('langSelector');
+const elements = {
+    logoClickable: document.getElementById('logoClickable'),
+    walletInfo: document.getElementById('walletInfo'),
+    walletAddress: document.getElementById('walletAddress'),
+    tokenBalance: document.getElementById('tokenBalance'),
+    themeToggle: document.getElementById('themeToggle'),
+    langSelector: document.getElementById('langSelector'),
+    roadmapBtn: document.getElementById('roadmapBtn'),
+    backHomeBtn: document.getElementById('backHomeBtn'),
+    sections: {
+        home: document.getElementById('home'),
+        roadmap: document.getElementById('roadmap')
+    }
+};
 
 // ================= STATE =================
 let tonConnectUI = null;
 let userAddress = null;
 let currentLang = 'ru';
+let translations = {};
 
-// ================= ПЕРЕВОДЫ =================
+// ================= TELEGRAM WEBAPP =================
+function initTelegramWebApp() {
+    const tg = window.Telegram?.WebApp;
+    if (!tg) return;
+    
+    tg.ready();
+    tg.expand();
+    
+    // Адаптация под тему Telegram
+    if (tg.colorScheme === 'light') {
+        document.body.classList.add('light');
+    }
+    
+    // Настройка цветов хедера и нижней панели
+    if (tg.setHeaderColor) {
+        tg.setHeaderColor(document.body.classList.contains('light') ? '#ffffff' : '#000000');
+    }
+    if (tg.setBottomBarColor) {
+        tg.setBottomBarColor(document.body.classList.contains('light') ? '#ffffff' : '#000000');
+    }
+}
+
+// ================= ТЕМА =================
+function loadTheme() {
+    const saved = localStorage.getItem('theme');
+    if (saved === 'light') {
+        document.body.classList.add('light');
+    }
+}
+
+function toggleTheme() {
+    document.body.classList.toggle('light');
+    localStorage.setItem('theme', document.body.classList.contains('light') ? 'light' : 'dark');
+    
+    // Обновляем цвета Telegram WebApp
+    const tg = window.Telegram?.WebApp;
+    if (tg?.setHeaderColor) {
+        tg.setHeaderColor(document.body.classList.contains('light') ? '#ffffff' : '#000000');
+    }
+    if (tg?.setBottomBarColor) {
+        tg.setBottomBarColor(document.body.classList.contains('light') ? '#ffffff' : '#000000');
+    }
+    
+    // Haptic feedback для Telegram
+    if (window.Telegram?.WebApp?.HapticFeedback) {
+        window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+    }
+}
+
+// ================= ЯЗЫК =================
 async function loadTranslations(langCode) {
     try {
         const response = await fetch(`langs/${langCode}.json`);
@@ -33,163 +105,71 @@ async function loadTranslations(langCode) {
     }
 }
 
-function applyTranslations(translations) {
-    document.querySelectorAll('[data-i18n]').forEach(element => {
-        const key = element.getAttribute('data-i18n');
-        const translationValue = translations[key];
-        if (translationValue !== undefined) {
-            element.textContent = translationValue;
+function applyTranslations() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[key]) {
+            el.textContent = translations[key];
         }
     });
+    
     document.title = translations.page_title || 'AKHUENO PROJECT';
     document.documentElement.lang = currentLang;
-    document.documentElement.dir = ['ar'].includes(currentLang) ? 'rtl' : 'ltr';
+    document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
 }
 
-async function changeLanguage(newLangCode) {
-    if (newLangCode !== currentLang) {
-        currentLang = newLangCode;
-        const translations = await loadTranslations(newLangCode);
-        applyTranslations(translations);
-        localStorage.setItem('preferredLanguage', newLangCode);
+async function changeLanguage(newLang) {
+    if (newLang !== currentLang) {
+        currentLang = newLang;
+        localStorage.setItem('preferredLanguage', newLang);
+        translations = await loadTranslations(newLang);
+        applyTranslations();
     }
+}
+
+async function initLanguage() {
+    // Автоопределение из Telegram
+    let detected = 'ru';
+    const tg = window.Telegram?.WebApp?.initDataUnsafe?.user;
+    if (tg?.language_code) {
+        const code = tg.language_code;
+        if (['ru', 'uk', 'be', 'kk'].includes(code)) detected = 'ru';
+        else if (code.startsWith('zh')) detected = 'zh';
+        else if (['ar', 'fa', 'he'].includes(code)) detected = 'ar';
+        else if (['en', 'es', 'fr', 'de', 'it'].includes(code)) detected = 'en';
+    }
+    
+    currentLang = localStorage.getItem('preferredLanguage') || detected;
+    elements.langSelector.value = currentLang;
+    translations = await loadTranslations(currentLang);
+    applyTranslations();
 }
 
 // ================= НАВИГАЦИЯ =================
 function showSection(sectionId) {
-    document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
-    document.getElementById(sectionId).classList.add('active');
+    Object.values(elements.sections).forEach(el => el.classList.remove('active'));
+    elements.sections[sectionId]?.classList.add('active');
     window.scrollTo(0, 0);
+    
+    // Haptic feedback
+    if (window.Telegram?.WebApp?.HapticFeedback) {
+        window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+    }
 }
 
 // ================= ФОРМАТИРОВАНИЕ БАЛАНСА =================
-function formatJettonAmount(amount, decimals = 9) {
-    const amountStr = amount.toString();
-    const negative = amountStr.startsWith('-');
-    const cleanAmountStr = amountStr.replace(/^-/, '');
-    let wholePart;
-    let fractionalPart;
+function formatBalance(balanceBigInt, decimals) {
+    const divisor = 10n ** BigInt(decimals);
+    const whole = balanceBigInt / divisor;
+    const fraction = balanceBigInt % divisor;
     
-    if (cleanAmountStr.length > decimals) {
-        const offset = cleanAmountStr.length - decimals;
-        wholePart = cleanAmountStr.slice(0, offset);
-        fractionalPart = cleanAmountStr.slice(offset);
-    } else {
-        wholePart = '0';
-        fractionalPart = cleanAmountStr.padStart(decimals, '0');
-    }
+    if (fraction === 0n) return whole.toString();
     
-    fractionalPart = fractionalPart.replace(/0+$/, '');
-    if (fractionalPart === '') {
-        fractionalPart = '0';
-    }
-    
-    const formatted = `${negative ? '-' : ''}${wholePart}.${fractionalPart}`;
-    const parts = formatted.split('.');
-    const wholeFormatted = parseInt(parts[0]).toLocaleString(undefined, { maximumFractionDigits: 0 });
-    return parts.length > 1 ? `${wholeFormatted}.${parts[1]}` : wholeFormatted;
+    const fractionStr = fraction.toString().padStart(decimals, '0').replace(/0+$/, '');
+    return `${whole}.${fractionStr}`;
 }
 
-// ================= БАЛАНС ДЖЕТТОНА (TonAPI) =================
-async function fetchJettonBalance(address) {
-    if (!address) {
-        console.error("Адрес пользователя не определен.");
-        tokenBalanceEl.textContent = 'Баланс: недоступен';
-        return;
-    }
-    
-    try {
-        tokenBalanceEl.textContent = 'Загрузка...';
-        console.log("Fetching balance for address:", address);
-        
-        // ✅ Запрос к TonAPI с параметром currencies=* (показывает unverifed-джеттоны)
-        const url = `${TONAPI_BASE}/accounts/${address}/jettons?currencies=*`;
-        const response = await fetch(url, {
-            headers: { 'accept': 'application/json' }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`TonAPI ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log("TonAPI response:", data);
-        
-        // ✅ Поиск джеттона по ТОЧНОМУ адресу
-        const jetton = data.balances?.find(j => 
-            j.jetton?.address?.toLowerCase() === JETTON_ADDRESS.toLowerCase()
-        );
-        
-        if (!jetton) {
-            tokenBalanceEl.textContent = `0 NKH`;
-            console.log("Jetton not found");
-            return;
-        }
-        
-        // ✅ Форматирование баланса
-        const balance = BigInt(jetton.balance);
-        const decimals = jetton.jetton?.decimals || 9;
-        const formattedBalance = formatJettonAmount(balance, decimals);
-        
-        tokenBalanceEl.textContent = `${formattedBalance} ${jetton.jetton?.symbol || 'NKH'}`;
-        console.log("Balance:", formattedBalance);
-        
-    } catch (error) {
-        console.error('Balance fetch error:', error);
-        tokenBalanceEl.textContent = 'Ошибка';
-    }
-}
-
-// ================= TONCONNECT =================
-async function initializeTonConnect() {
-    if (!tonConnectUI) {
-        console.log("Initializing TonConnectUI...");
-        
-        try {
-            // ✅ Инициализация с buttonRootId (скрытый контейнер в index.html)
-            tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-                manifestUrl: MANIFEST_URL,
-                buttonRootId: 'tonconnect-button'  // ✅ Ссылка на скрытый div
-            });
-            
-            // ✅ Обработчик статуса кошелька
-            tonConnectUI.onStatusChange(async wallet => {
-                if (wallet) {
-                    console.log("Кошелек подключен:", wallet);
-                    userAddress = wallet.account.address;
-                    walletAddressEl.textContent = formatAddress(userAddress);
-                    walletInfo.classList.add('active');
-                    await fetchJettonBalance(userAddress);
-                } else {
-                    console.log("Кошелек отключен");
-                    userAddress = null;
-                    walletInfo.classList.remove('active');
-                    tokenBalanceEl.textContent = 'Баланс: недоступен';
-                }
-            });
-            
-            // ✅ Восстановление соединения
-            await tonConnectUI.restoreConnection();
-            console.log("TonConnect UI initialized successfully");
-            
-        } catch (error) {
-            console.error('TonConnect init error:', error);
-            tokenBalanceEl.textContent = 'Ошибка подключения';
-        }
-    }
-}
-
-// ✅ Подключение кошелька по клику на логотип
-logoClickable.addEventListener('click', () => {
-    if (tonConnectUI) {
-        console.log("Открываем модальное окно TonConnect...");
-        tonConnectUI.openModal();  // ✅ Открываем модалку напрямую
-    } else {
-        console.error("TonConnectUI not initialized yet");
-    }
-});
-
-// Форматирование адреса (короткая версия)
+// Короткое отображение адреса
 function formatAddress(rawAddress) {
     if (rawAddress.length > 20) {
         return rawAddress.slice(0, 10) + '...' + rawAddress.slice(-6);
@@ -197,63 +177,186 @@ function formatAddress(rawAddress) {
     return rawAddress;
 }
 
-// ================= EVENT LISTENERS =================
-themeToggle.addEventListener('click', () => {
-    document.body.classList.toggle('light');
-    localStorage.setItem('theme', document.body.classList.contains('light') ? 'light' : 'dark');
-});
+// ================= БАЛАНС ДЖЕТТОНА (TonAPI) =================
+async function fetchJettonBalance(rawAddress) {
+    elements.tokenBalance.textContent = translations.loading_balance || 'Загрузка...';
+    
+    try {
+        // ✅ Запрос к TonAPI с параметром currencies=* (показывает unverifed-джеттоны)
+        // TonAPI принимает raw-адрес напрямую: "0:abc123..."
+        const url = `${CONFIG.TONAPI_BASE}/accounts/${rawAddress}/jettons?currencies=*`;
+        
+        const res = await fetch(url, { 
+            headers: { 'accept': 'application/json' } 
+        });
+        
+        if (!res.ok) {
+            throw new Error(`TonAPI ${res.status}`);
+        }
+        
+        const data = await res.json();
+        console.log('TonAPI response:', JSON.stringify(data).slice(0, 500));
+        
+        // ✅ Поиск джеттона по ТОЧНОМУ адресу (сравнение в нижнем регистре)
+        const jetton = data.balances?.find(j => 
+            j.jetton?.address?.toLowerCase() === CONFIG.JETTON_ADDRESS.toLowerCase()
+        );
+        
+        if (!jetton) {
+            console.log('Jetton not found. Available:', data.balances?.map(b => b.jetton?.symbol));
+            elements.tokenBalance.textContent = `0 ${CONFIG.SYMBOL}`;
+            return;
+        }
+        
+        // ✅ Форматирование баланса
+        const balance = BigInt(jetton.balance);
+        const decimals = jetton.jetton?.decimals || CONFIG.DECIMALS;
+        const formatted = formatBalance(balance, decimals);
+        const symbol = jetton.jetton?.symbol || CONFIG.SYMBOL;
+        
+        elements.tokenBalance.textContent = `${formatted} ${symbol}`;
+        console.log('✅ Balance:', formatted, symbol);
+        
+    } catch (e) {
+        console.error('Balance fetch error:', e);
+        elements.tokenBalance.textContent = 'Ошибка';
+    }
+}
 
-roadmapBtn.addEventListener('click', () => showSection('roadmap'));
-backHomeBtn.addEventListener('click', () => showSection('home'));
-langSelector.addEventListener('change', (e) => changeLanguage(e.target.value));
+// ================= TONCONNECT (ИСПРАВЛЕННЫЙ ДЛЯ MINI APP) =================
+function initTonConnect() {
+    const TC = window.TonConnectUI || window.TON_CONNECT_UI?.TonConnectUI;
+    
+    if (!TC) {
+        console.error('TonConnect UI not loaded');
+        elements.tokenBalance.textContent = 'Ошибка загрузки';
+        return;
+    }
+
+    try {
+        // ✅ Инициализация TonConnect UI с настройками для Mini App
+        tonConnectUI = typeof TC === 'function' 
+            ? new TC({ 
+                manifestUrl: CONFIG.MANIFEST_URL,
+                buttonRootId: 'tonconnect-button',  // ✅ Скрытый контейнер в index.html
+                
+                // ✅ Конфигурация действий для Telegram Mini App
+                actionsConfiguration: {
+                    twaReturnUrl: CONFIG.TWA_RETURN_URL  // Возврат в Mini App после подключения
+                }
+            })
+            : TC.create({ 
+                manifestUrl: CONFIG.MANIFEST_URL,
+                buttonRootId: 'tonconnect-button',
+                actionsConfiguration: {
+                    twaReturnUrl: CONFIG.TWA_RETURN_URL
+                }
+            });
+
+        // ✅ Подписка на изменения кошелька
+        tonConnectUI.onStatusChange(async (wallet) => {
+            if (wallet) {
+                console.log('✅ Кошелек подключен:', wallet.account.address);
+                userAddress = wallet.account.address;
+                
+                // Показываем адрес (короткая версия)
+                elements.walletAddress.textContent = formatAddress(userAddress);
+                elements.walletInfo.classList.add('active');
+                
+                // Загружаем баланс
+                await fetchJettonBalance(userAddress);
+                
+                // ✅ Haptic feedback для Telegram
+                if (window.Telegram?.WebApp?.HapticFeedback) {
+                    window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+                }
+            } else {
+                console.log('❌ Кошелек отключен');
+                userAddress = null;
+                elements.walletInfo.classList.remove('active');
+                elements.walletAddress.textContent = '';
+                elements.tokenBalance.textContent = translations.loading_balance || 'Загрузка...';
+            }
+        });
+        
+        // ✅ Восстановление сессии при перезагрузке
+        tonConnectUI.restoreConnection();
+        console.log('TonConnect initialized');
+        
+    } catch (e) {
+        console.error('TonConnect init error:', e);
+        elements.tokenBalance.textContent = 'Ошибка подключения';
+    }
+}
+
+// ✅ Подключение кошелька по клику на логотип
+async function connectWallet() {
+    if (!tonConnectUI) {
+        console.error('TonConnect not initialized');
+        return;
+    }
+    
+    // ✅ Haptic feedback перед открытием модалки
+    if (window.Telegram?.WebApp?.HapticFeedback) {
+        window.Telegram.WebApp.HapticFeedback.impactOccurred('heavy');
+    }
+    
+    // ✅ Открываем модальное окно подключения
+    // В Mini App это автоматически откроет список кошельков с правильными deep links
+    try {
+        await tonConnectUI.openModal();
+    } catch (e) {
+        console.error('openModal error:', e);
+    }
+}
+
+// ================= EVENT LISTENERS =================
+function setupEventListeners() {
+    // ✅ Логотип → подключение кошелька
+    elements.logoClickable?.addEventListener('click', connectWallet);
+    
+    // Тема
+    elements.themeToggle?.addEventListener('click', toggleTheme);
+    
+    // Язык
+    elements.langSelector?.addEventListener('change', (e) => changeLanguage(e.target.value));
+    
+    // Навигация
+    elements.roadmapBtn?.addEventListener('click', () => showSection('roadmap'));
+    elements.backHomeBtn?.addEventListener('click', () => showSection('home'));
+}
 
 // ================= ИНИЦИАЛИЗАЦИЯ =================
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log("DOM fully loaded and parsed.");
+    console.log('🚀 DOM loaded');
     
     // 1. Тема
-    if (localStorage.getItem('theme') === 'light') {
-        document.body.classList.add('light');
-    }
+    loadTheme();
     
     // 2. Telegram WebApp
-    const tgWebApp = window.Telegram?.WebApp;
-    let detectedLang = 'ru';
+    initTelegramWebApp();
     
-    if (tgWebApp && tgWebApp.initDataUnsafe && tgWebApp.initDataUnsafe.user) {
-        detectedLang = tgWebApp.initDataUnsafe.user.language_code || 'en';
-        if (['uk', 'be', 'kk'].includes(detectedLang)) detectedLang = 'ru';
-        if (detectedLang.startsWith('zh')) detectedLang = 'zh';
-        if (['ar', 'fa', 'he'].includes(detectedLang)) detectedLang = 'ar';
-        const supportedLangs = ['ru', 'en', 'ar', 'zh'];
-        if (!supportedLangs.includes(detectedLang)) detectedLang = 'en';
-    }
+    // 3. Язык
+    await initLanguage();
     
-    const savedLang = localStorage.getItem('preferredLanguage');
-    currentLang = savedLang || detectedLang;
-    langSelector.value = currentLang;
+    // 4. TonConnect (с настройками для Mini App)
+    initTonConnect();
     
-    // 3. Переводы
-    const translations = await loadTranslations(currentLang);
-    applyTranslations(translations);
+    // 5. Event listeners
+    setupEventListeners();
     
-    // 4. TonConnect
-    await initializeTonConnect();
-    
-    // 5. Telegram WebApp ready
-    if (tgWebApp) {
-        tgWebApp.ready();
-        tgWebApp.expand();
-    }
+    console.log('✅ App initialized');
 });
 
-// Проверка загрузки библиотеки TonConnect
+// ✅ Проверка загрузки TonConnect UI библиотеки
 window.addEventListener('load', () => {
-    console.log("Window 'load' event fired.");
-    if (typeof TON_CONNECT_UI === 'undefined' || typeof TON_CONNECT_UI.TonConnectUI === 'undefined') {
-        console.error("TON Connect UI library failed to load!");
-        tokenBalanceEl.textContent = 'Ошибка: TON Connect недоступен';
-        logoClickable.style.pointerEvents = 'none';
-        logoClickable.style.opacity = '0.5';
+    if (typeof window.TonConnectUI === 'undefined' && 
+        typeof window.TON_CONNECT_UI?.TonConnectUI === 'undefined') {
+        console.error('❌ TonConnect UI library failed to load!');
+        elements.tokenBalance.textContent = 'Ошибка: TON Connect недоступен';
+        if (elements.logoClickable) {
+            elements.logoClickable.style.pointerEvents = 'none';
+            elements.logoClickable.style.opacity = '0.5';
+        }
     }
 });
