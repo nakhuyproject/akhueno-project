@@ -2,9 +2,14 @@
 <html lang="ru" dir="ltr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="theme-color" content="#000000">
     <title data-i18n="page_title">AKHUENO PROJECT</title>
+    
+    <!-- Telegram WebApp -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- TonConnect UI -->
     <link rel="stylesheet" href="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.css">
     <link rel="stylesheet" href="styles/main.css">
     <link rel="manifest" href="tonconnect-manifest.json">
@@ -27,7 +32,7 @@
         <!-- Страница: Главная -->
         <div id="home" class="section active">
             <div class="hero-section">
-                <!-- Логотип (клик = подключение кошелька) -->
+                <!-- Логотип (тап = подключ, долгий = отключ) -->
                 <div class="logo-wrapper" id="logoClickable">
                     <div class="logo">
                         <img src="assets/logo.png" alt="Akhueno Project Logo" 
@@ -166,7 +171,7 @@
     </div>
 
     <!-- ✅ СКРЫТЫЙ КОНТЕЙНЕР ДЛЯ TONCONNECT (обязательно!) -->
-    <div id="tonconnect-button" style="display:none;"></div>
+    <div id="tonconnect-button" style="position:fixed; left:-9999px; top:-9999px;"></div>
 
     <!-- Скрипты -->
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
