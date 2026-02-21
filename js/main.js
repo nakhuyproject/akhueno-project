@@ -19,7 +19,7 @@ const CONFIG = {
     SYMBOL: 'NKH',
     
     // ⏱️ Время долгого нажатия для отключения (мс)
-    LONG_PRESS_DURATION: 3000
+    LONG_PRESS_DURATION: 2000
 };
 
 // ================= DOM ELEMENTS =================
@@ -487,4 +487,5 @@ window.addEventListener('load', () => {
             elements.logoClickable.style.opacity = '0.5';
         }
     }
+
 });
